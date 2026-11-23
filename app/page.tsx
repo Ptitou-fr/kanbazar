@@ -29,7 +29,8 @@ async function BoardPage() {
     <SaveStatusProvider>
       <SidebarProvider>
         <AppSidebar counts={counts} />
-        <SidebarInset>
+        {/* min-w-0 : le tableau défile dans sa grille au lieu d'élargir la page. */}
+        <SidebarInset className="min-w-0">
           <header className="flex min-h-14 items-center gap-2 border-b bg-sidebar px-3 md:hidden">
             <SidebarTrigger aria-label="Ouvrir le menu" />
             <span className="flex-1">
