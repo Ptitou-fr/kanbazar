@@ -16,7 +16,6 @@ import { columns } from "./columns";
 import { CreateCardForm } from "./create-card-form";
 import { DeleteCardDialog } from "./delete-card-dialog";
 import { notifySaveFailure } from "./save-failure";
-import { useSaveStatus } from "./save-status";
 
 const order: CardStatus[] = columns.map((column) => column.status);
 
@@ -42,7 +41,6 @@ export function BoardView({ board }: { board: Board }) {
   const [announce, setAnnounce] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const { setState: setSaveState } = useSaveStatus();
 
   const shown = grab?.preview ?? saved;
   const findCard = (id: string | null) => (id ? Object.values(saved).flat().find((card) => card.id === id) : undefined);
@@ -59,7 +57,6 @@ export function BoardView({ board }: { board: Board }) {
   // transition se termine sans nouveau tableau : l'aperçu disparaît et le
   // tableau enregistré revient.
   function saveBoard(next: Board, run: () => Promise<{ ok: boolean }>, failure: string, retry: () => void) {
-    setSaveState("saving");
     startTransition(async () => {
       setOptimisticBoard(next);
       let ok = false;
@@ -68,11 +65,7 @@ export function BoardView({ board }: { board: Board }) {
       } catch {
         ok = false;
       }
-      if (ok) {
-        setSaveState("saved");
-        return;
-      }
-      setSaveState("error");
+      if (ok) return;
       setAnnounce(`Échec de l’enregistrement : ${failure}`);
       notifySaveFailure(failure, retry);
     });

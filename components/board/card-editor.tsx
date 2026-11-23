@@ -11,7 +11,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { Card } from "@/services/card-service";
 import { notifySaveFailure } from "./save-failure";
-import { useSaveStatus } from "./save-status";
 
 type Field = "title" | "description";
 type Values = Record<Field, string>;
@@ -39,7 +38,6 @@ export function CardEditor({ card, onClose, actions }: CardEditorProps) {
   const sent = useRef<Values>({ title: card.title, description: card.description });
   const savedTitle = useRef(card.title);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const { setState: setSaveState } = useSaveStatus();
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -58,7 +56,6 @@ export function CardEditor({ card, onClose, actions }: CardEditorProps) {
     const previous = sent.current[field];
     sent.current[field] = value;
     setPendingCount((count) => count + 1);
-    setSaveState("saving");
     startTransition(async () => {
       let result: UpdateCardState;
       try {
@@ -70,17 +67,14 @@ export function CardEditor({ card, onClose, actions }: CardEditorProps) {
       if (result.ok) {
         savedTitle.current = result.card.title;
         markFailed(field, false);
-        setSaveState("saved");
         return;
       }
       sent.current[field] = previous;
       if (result.error === "title_required") {
         setTitleError(true);
-        setSaveState("saved");
         return;
       }
       markFailed(field, true);
-      setSaveState("error");
       notifySaveFailure(`« ${savedTitle.current} » n’a pas été modifiée.`, () => save(field, value));
     });
   }

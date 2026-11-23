@@ -4,7 +4,6 @@ import { AppSidebar } from "@/components/board/app-sidebar";
 import { BoardView } from "@/components/board/board-view";
 import { Logo } from "@/components/board/logo";
 import { NewCardButton } from "@/components/board/new-card-button";
-import { SaveStatusProvider } from "@/components/board/save-status";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { cardService } from "@/services/card-service";
@@ -25,7 +24,7 @@ async function BoardPage() {
   const total = counts.todo + counts.doing + counts.done;
 
   return (
-    <SaveStatusProvider>
+    <>
       <SidebarProvider>
         <AppSidebar counts={counts} />
         {/* min-w-0 : le tableau défile dans sa grille au lieu d'élargir la page. */}
@@ -54,6 +53,6 @@ async function BoardPage() {
         </SidebarInset>
       </SidebarProvider>
       <Toaster position="bottom-right" />
-    </SaveStatusProvider>
+    </>
   );
 }
