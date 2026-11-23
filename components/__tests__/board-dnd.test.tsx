@@ -227,3 +227,21 @@ describe("BoardView — réordonner les cartes d'une colonne", () => {
     await vi.waitFor(() => expect(titles("À faire")).toEqual(["A", "B", "C"]));
   });
 });
+
+describe("BoardView — déplacer depuis le menu « … » (écran tactile)", () => {
+  // Alternative au glisser-déposer sur mobile : la carte arrive en bas de la colonne choisie.
+  test("« Déplacer vers… » propose les autres colonnes et envoie la carte en bas de celle choisie", async () => {
+    keepSaving();
+    render(<BoardView board={board} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Actions pour « A »" }));
+    const group = await screen.findByRole("group", { name: "Déplacer vers…" });
+    expect(within(group).getAllByRole("menuitem").map((item) => item.textContent)).toEqual(["En cours", "Terminé"]);
+
+    fireEvent.click(within(group).getByRole("menuitem", { name: "En cours" }));
+
+    await vi.waitFor(() => expect(moveCardAction).toHaveBeenCalledWith("a", "doing", 2));
+    expect(titles("En cours")).toEqual(["C", "D", "A"]);
+    expect(announcement()).toBe("« A » déposée dans En cours, position 3 sur 3.");
+  });
+});

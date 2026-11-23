@@ -100,6 +100,13 @@ export function BoardView({ board }: { board: Board }) {
     );
   }
 
+  // Depuis le menu « … » (écran tactile) : vers une autre colonne, la carte arrive en bas, comme au clavier.
+  function moveToColumn(id: string, status: CardStatus) {
+    const index = saved[status].filter((card) => card.id !== id).length;
+    setAnnounce(`« ${cardTitle(saved, id)} » déposée dans ${columnTitle(status)}, position ${index + 1} sur ${index + 1}.`);
+    commitMove(id, status, index);
+  }
+
   // Demande la confirmation ; la suppression se fait dans confirmDelete.
   function askToDelete(id: string) {
     setEditingId(null);
@@ -250,6 +257,7 @@ export function BoardView({ board }: { board: Board }) {
                       onOpen={() => setEditingId(card.id)}
                       onArchive={() => archive(card.id)}
                       onDelete={() => askToDelete(card.id)}
+                      onMoveTo={(status) => moveToColumn(card.id, status)}
                       onHandleKeyDown={(event) => onHandleKeyDown(card.id, event)}
                       onDragStart={(event) => {
                         event.dataTransfer.effectAllowed = "move";
@@ -282,6 +290,7 @@ export function BoardView({ board }: { board: Board }) {
                           onOpen={() => {}}
                           onArchive={() => {}}
                           onDelete={() => {}}
+                          onMoveTo={() => {}}
                           onHandleKeyDown={() => {}}
                           onDragEnd={() => setDrag(null)}
                         />

@@ -2,9 +2,18 @@ import { Archive, Ellipsis, GripVertical, Trash2 } from "lucide-react";
 import type { DragEventHandler, KeyboardEventHandler } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import type { Card as CardData } from "@/services/card-service";
+import type { Card as CardData, CardStatus } from "@/services/card-service";
+import { columns } from "./columns";
 
 type CardItemProps = {
   card: CardData;
@@ -12,13 +21,14 @@ type CardItemProps = {
   onOpen: () => void;
   onArchive: () => void;
   onDelete: () => void;
+  onMoveTo: (status: CardStatus) => void;
   onHandleKeyDown: KeyboardEventHandler;
   onDragStart?: DragEventHandler;
   onDragEnd?: DragEventHandler;
   onDragOver?: DragEventHandler<HTMLDivElement>;
 };
 
-export function CardItem({ card, grabbed, onOpen, onArchive, onDelete, onHandleKeyDown, onDragStart, onDragEnd, onDragOver }: CardItemProps) {
+export function CardItem({ card, grabbed, onOpen, onArchive, onDelete, onMoveTo, onHandleKeyDown, onDragStart, onDragEnd, onDragOver }: CardItemProps) {
   return (
     <Card
       size="sm"
@@ -68,6 +78,21 @@ export function CardItem({ card, grabbed, onOpen, onArchive, onDelete, onHandleK
           <Ellipsis aria-hidden="true" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
+          {/* Sur écran tactile, le glisser-déposer natif ne marche pas : le menu le remplace. */}
+          <div className="hidden any-pointer-coarse:block">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Déplacer vers…</DropdownMenuLabel>
+              {columns
+                .filter((column) => column.status !== card.status)
+                .map((column) => (
+                  <DropdownMenuItem key={column.status} onClick={() => onMoveTo(column.status)}>
+                    <span aria-hidden="true" className={`size-2 shrink-0 rounded-full ${column.dotClass}`} />
+                    {column.title}
+                  </DropdownMenuItem>
+                ))}
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+          </div>
           <DropdownMenuItem onClick={onArchive}>
             <Archive aria-hidden="true" />
             Archiver
