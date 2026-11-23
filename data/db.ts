@@ -6,7 +6,7 @@ import { createClient, type Client } from "@libsql/client";
 
 export type DatabaseConfig = { url: string; authToken?: string };
 
-// Chaque entrée fait passer le schéma à la version suivante (PRAGMA user_version).
+// Chaque entrée fait passer le schéma à la version suivante (table schema_version).
 const migrations: string[][] = [
   [
     `CREATE TABLE cards (
@@ -23,11 +23,26 @@ const migrations: string[][] = [
   ["ALTER TABLE cards ADD COLUMN archived_at TEXT"],
 ];
 
-async function migrate(client: Client) {
-  const result = await client.execute("PRAGMA user_version");
-  const current = Number(result.rows[0]?.[0] ?? 0);
+export const SCHEMA_VERSION = migrations.length;
+
+// La version du schéma est rangée dans une table à une seule ligne : Turso
+// refuse d'écrire PRAGMA user_version sur une base distante (il en permet la
+// lecture). Les bases locales créées avant cette table gardent leur version
+// dans PRAGMA user_version : elle sert de point de départ.
+export async function migrate(client: Client) {
+  await client.execute("CREATE TABLE IF NOT EXISTS schema_version (id INTEGER PRIMARY KEY CHECK (id = 1), version INTEGER NOT NULL)");
+  const legacy = await client.execute("PRAGMA user_version");
+  await client.execute({
+    sql: "INSERT OR IGNORE INTO schema_version (id, version) VALUES (1, ?)",
+    args: [Number(legacy.rows[0]?.[0] ?? 0)],
+  });
+  const result = await client.execute("SELECT version FROM schema_version WHERE id = 1");
+  const current = Number(result.rows[0]?.version ?? 0);
   for (let version = current; version < migrations.length; version++) {
-    await client.batch([...migrations[version], `PRAGMA user_version = ${version + 1}`], "write");
+    await client.batch(
+      [...migrations[version], { sql: "UPDATE schema_version SET version = ? WHERE id = 1", args: [version + 1] }],
+      "write",
+    );
   }
 }
 
