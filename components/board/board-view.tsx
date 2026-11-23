@@ -26,8 +26,8 @@ function cardTitle(board: Board, id: string) {
 
 // Glisser-déposer à la souris : la carte saisie et l'emplacement survolé.
 type Drag = { id: string; over: Slot | null };
-// Déplacement au clavier : la carte saisie, l'aperçu en cours et le tableau de départ.
-type Grab = { id: string; preview: Board; start: Board };
+// Déplacement au clavier : la carte saisie et l'aperçu en cours (Échap revient au tableau enregistré).
+type Grab = { id: string; preview: Board };
 
 export function BoardView({ board }: { board: Board }) {
   // Le tableau enregistré, ou l'aperçu d'un déplacement en cours d'enregistrement.
@@ -91,7 +91,7 @@ export function BoardView({ board }: { board: Board }) {
         );
         commitMove(id, slot.status, slot.index);
       } else {
-        setGrab({ id, preview: saved, start: saved });
+        setGrab({ id, preview: saved });
         setAnnounce(`« ${title} » saisie. Flèches pour la déplacer, Espace pour la déposer, Échap pour annuler.`);
       }
       return;
@@ -109,6 +109,9 @@ export function BoardView({ board }: { board: Board }) {
       const status = order[order.indexOf(slot.status) + (key === "ArrowLeft" ? -1 : 1)];
       // Vers une autre colonne, la carte arrive en bas.
       if (status) target = { status, index: grab.preview[status].length };
+    } else if (key === "ArrowUp" || key === "ArrowDown") {
+      const index = slot.index + (key === "ArrowUp" ? -1 : 1);
+      if (index >= 0 && index < grab.preview[slot.status].length) target = { status: slot.status, index };
     }
     if (!target) return;
     event.preventDefault();
@@ -143,6 +146,10 @@ export function BoardView({ board }: { board: Board }) {
             <span className="inline-flex items-center gap-1.5">
               <Kbd>←</Kbd>
               <Kbd>→</Kbd> changer de colonne
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Kbd>↑</Kbd>
+              <Kbd>↓</Kbd> changer de rang
             </span>
             <span className="inline-flex items-center gap-1.5">
               <Kbd>Espace</Kbd> déposer

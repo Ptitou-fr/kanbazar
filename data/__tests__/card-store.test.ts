@@ -167,4 +167,24 @@ describe("cardStore", () => {
 
     await expect(createCardStore(() => db).placeCards("todo", ["a"])).rejects.toThrow();
   });
+
+  // Lot 4, critères 1 et 3 : nouvel ordre d'une colonne, conservé après redémarrage
+  test("placeCards réordonne une colonne, relue dans le même ordre par un nouveau client", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "kanbazar-"));
+    dirs.push(dir);
+    const url = `file:${join(dir, "kanbazar.db")}`;
+
+    const firstDb = openDatabase({ url });
+    const store = createCardStore(() => firstDb);
+    const a = await store.appendCard({ title: "A", status: "todo" });
+    const b = await store.appendCard({ title: "B", status: "todo" });
+    const c = await store.appendCard({ title: "C", status: "todo" });
+    await store.placeCards("todo", [c.id, a.id, b.id]);
+    (await firstDb).close();
+
+    const secondDb = openDatabase({ url });
+    const cards = await createCardStore(() => secondDb).listCards();
+    (await secondDb).close();
+    expect(cards.map((card) => card.title)).toEqual(["C", "A", "B"]);
+  });
 });

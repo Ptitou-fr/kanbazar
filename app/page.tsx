@@ -48,6 +48,8 @@ async function BoardPage() {
               <p className="hidden flex-wrap items-center gap-1.5 text-[13px] text-muted-foreground md:flex">
                 Glissez une carte pour la déplacer · au clavier : <Kbd>Espace</Kbd> puis <Kbd>←</Kbd>
                 <Kbd>→</Kbd>
+                <Kbd>↑</Kbd>
+                <Kbd>↓</Kbd>
               </p>
             </div>
             <BoardView board={board} />

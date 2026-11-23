@@ -32,4 +32,9 @@ describe("board-moves", () => {
   test("moveCardInBoard borne l'index à la colonne", () => {
     expect(ids(moveCardInBoard(board, "a", "done", 9))).toEqual({ todo: ["b"], doing: ["c", "d"], done: ["a"] });
   });
+
+  // Lot 4 : aperçu d'un tri dans la même colonne
+  test("moveCardInBoard réordonne une colonne", () => {
+    expect(ids(moveCardInBoard(board, "b", "todo", 0)).todo).toEqual(["b", "a"]);
+  });
 });

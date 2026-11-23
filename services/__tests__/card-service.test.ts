@@ -215,3 +215,27 @@ describe("cardService.moveCard", () => {
     await expect(createCardService(store).moveCard("a", "doing", 0)).rejects.toThrow("base injoignable");
   });
 });
+
+describe("cardService.moveCard dans une même colonne", () => {
+  const column = [
+    card({ id: "a", status: "todo", position: 1 }),
+    card({ id: "b", status: "todo", position: 2 }),
+    card({ id: "c", status: "todo", position: 3 }),
+  ];
+
+  // Lot 4, critère 1 : C déposée au-dessus de A
+  test("place C au-dessus de A : l'ordre devient C, A, B", async () => {
+    const store = fakeStore(column);
+
+    await expect(createCardService(store).moveCard("c", "todo", 0)).resolves.toEqual({ ok: true });
+    expect(store.placeCards).toHaveBeenCalledWith("todo", ["c", "a", "b"]);
+  });
+
+  // Lot 4, critère 2 : un rang plus bas
+  test("descend A d'un rang : l'ordre devient B, A, C", async () => {
+    const store = fakeStore(column);
+
+    await createCardService(store).moveCard("a", "todo", 1);
+    expect(store.placeCards).toHaveBeenCalledWith("todo", ["b", "a", "c"]);
+  });
+});

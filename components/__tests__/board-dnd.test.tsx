@@ -155,3 +155,75 @@ describe("BoardView — déplacer une carte vers un autre état", () => {
     expect(titles("En cours")).toEqual(["C", "D"]);
   });
 });
+
+describe("BoardView — réordonner les cartes d'une colonne", () => {
+  const abc: Board = { todo: [card("a", "todo"), card("b", "todo"), card("c", "todo")], doing: [], done: [] };
+
+  // Lot 4, critère 1 : C déposée au-dessus de A
+  test("C déposée au-dessus de A : l'ordre affiché devient C, A, B", async () => {
+    keepSaving();
+    render(<BoardView board={abc} />);
+
+    fireEvent.dragStart(article("C"), { dataTransfer: { setData: vi.fn(), effectAllowed: "" } });
+    await vi.waitFor(() => expect(column("À faire").querySelector("[data-placeholder]")).not.toBeNull());
+    fireEvent.dragOver(article("A"), { clientY: 0 });
+    fireEvent.drop(article("A"));
+
+    await vi.waitFor(() => expect(moveCardAction).toHaveBeenCalledWith("c", "todo", 0));
+    expect(titles("À faire")).toEqual(["C", "A", "B"]);
+  });
+
+  // Lot 4, critère 2 : ↑ et ↓ d'un rang, Échap rétablit l'ordre de départ
+  test("au clavier, ↑ et ↓ changent la carte de rang et Échap rétablit l'ordre de départ", () => {
+    render(<BoardView board={abc} />);
+
+    press("A", " ");
+    press("A", "ArrowDown");
+    expect(titles("À faire")).toEqual(["B", "A", "C"]);
+    expect(announcement()).toBe("« A » — colonne À faire, position 2 sur 3.");
+    press("A", "ArrowDown");
+    expect(titles("À faire")).toEqual(["B", "C", "A"]);
+    press("A", "ArrowDown");
+    expect(titles("À faire")).toEqual(["B", "C", "A"]);
+    press("A", "ArrowUp");
+    expect(titles("À faire")).toEqual(["B", "A", "C"]);
+
+    press("A", "Escape");
+    expect(titles("À faire")).toEqual(["A", "B", "C"]);
+    expect(moveCardAction).not.toHaveBeenCalled();
+  });
+
+  test("au clavier, ↑ puis Espace enregistre le nouveau rang", async () => {
+    keepSaving();
+    render(<BoardView board={abc} />);
+
+    press("C", " ");
+    press("C", "ArrowUp");
+    press("C", " ");
+
+    await vi.waitFor(() => expect(moveCardAction).toHaveBeenCalledWith("c", "todo", 1));
+    expect(titles("À faire")).toEqual(["A", "C", "B"]);
+  });
+
+  test("le bandeau clavier explique ↑ ↓", () => {
+    render(<BoardView board={abc} />);
+
+    press("A", " ");
+
+    expect(screen.getByText(/changer de rang/)).toBeDefined();
+  });
+
+  // Lot 4, critère 4 : échec signalé, l'ordre enregistré est réaffiché
+  test("si l'enregistrement échoue, l'erreur est signalée et l'ordre enregistré est réaffiché", async () => {
+    moveCardAction.mockResolvedValue({ ok: false, error: "save_failed" });
+    render(<BoardView board={abc} />);
+
+    press("C", " ");
+    press("C", "ArrowUp");
+    press("C", "ArrowUp");
+    press("C", " ");
+
+    await vi.waitFor(() => expect(toastError).toHaveBeenCalled());
+    await vi.waitFor(() => expect(titles("À faire")).toEqual(["A", "B", "C"]));
+  });
+});
