@@ -41,7 +41,7 @@ async function BoardPage() {
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h1 className="text-[22px] font-semibold tracking-tight text-balance md:text-[28px]">
-                  Kanbazar, le petit outil kanban qui met de l’ordre dans ton bazar
+                  Le petit outil kanban qui met de l’ordre dans ton bazar
                 </h1>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {total} {total > 1 ? "cartes actives" : "carte active"}
