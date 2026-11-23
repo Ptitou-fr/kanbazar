@@ -7,3 +7,6 @@ export const columns: { status: CardStatus; title: string; dotClass: string }[] 
 ];
 
 export const NEW_CARD_INPUT_ID = "new-card-title";
+
+// Ouvre le formulaire de création replié (bouton « Nouvelle carte » de la barre latérale).
+export const OPEN_NEW_CARD_EVENT = "kanbazar:open-new-card";

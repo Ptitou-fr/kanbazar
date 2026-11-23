@@ -18,7 +18,7 @@ export type CardPatch = { title?: string; description?: string };
 export type CardStore = {
   // Cartes actives seulement : les cartes archivées restent en base, hors tableau.
   listCards(): Promise<Card[]>;
-  appendCard(input: { title: string; status: CardStatus }): Promise<Card>;
+  appendCard(input: { title: string; description?: string; status: CardStatus }): Promise<Card>;
   // Renvoie la carte modifiée, ou null si elle n'existe pas.
   updateCard(id: string, patch: CardPatch): Promise<Card | null>;
   // Range la colonne : chaque carte prend cet état et la position de son rang.
@@ -52,15 +52,15 @@ export function createCardStore(getClient: () => Promise<Client>): CardStore {
       return result.rows.map(toCard);
     },
 
-    async appendCard({ title, status }) {
+    async appendCard({ title, description = "", status }) {
       const client = await getClient();
       const id = crypto.randomUUID();
       // Position calculée et carte insérée dans la même instruction : pas de course.
       const result = await client.execute({
-        sql: `INSERT INTO cards (id, title, status, position, created_at)
-              VALUES (?, ?, ?, (SELECT COALESCE(MAX(position), 0) + 1 FROM cards WHERE status = ?), ?)
+        sql: `INSERT INTO cards (id, title, description, status, position, created_at)
+              VALUES (?, ?, ?, ?, (SELECT COALESCE(MAX(position), 0) + 1 FROM cards WHERE status = ?), ?)
               RETURNING ${CARD_COLUMNS}`,
-        args: [id, title, status, status, new Date().toISOString()],
+        args: [id, title, description, status, status, new Date().toISOString()],
       });
       return toCard(result.rows[0]);
     },

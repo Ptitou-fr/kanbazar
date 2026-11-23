@@ -6,9 +6,10 @@ vi.mock("next/cache", () => ({ refresh }));
 
 import { createCardAction } from "@/app/actions/create-card";
 
-function formWith(title: string) {
+function formWith(title: string, description?: string) {
   const data = new FormData();
   data.set("title", title);
+  if (description !== undefined) data.set("description", description);
   return data;
 }
 
@@ -23,7 +24,7 @@ describe("createCardAction", () => {
     createCard.mockResolvedValue({ ok: true, card: { id: "1", title: "T", status: "todo", position: 1 } });
 
     await expect(createCardAction(formWith("T"))).resolves.toEqual({ ok: true });
-    expect(createCard).toHaveBeenCalledWith("T");
+    expect(createCard).toHaveBeenCalledWith("T", null);
     expect(refresh).toHaveBeenCalledOnce();
   });
 
@@ -41,5 +42,13 @@ describe("createCardAction", () => {
 
     await expect(createCardAction(formWith("T"))).resolves.toEqual({ ok: false, error: "save_failed" });
     expect(refresh).not.toHaveBeenCalled();
+  });
+
+  // Issue #17 : la description du formulaire est transmise au service
+  test("transmet la description saisie au service", async () => {
+    createCard.mockResolvedValue({ ok: true, card: { id: "1", title: "T", description: "D", status: "todo", position: 1 } });
+
+    await expect(createCardAction(formWith("T", "D"))).resolves.toEqual({ ok: true });
+    expect(createCard).toHaveBeenCalledWith("T", "D");
   });
 });

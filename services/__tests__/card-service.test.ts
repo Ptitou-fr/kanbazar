@@ -9,11 +9,11 @@ function card(fields: Partial<Card> & Pick<Card, "id">): Card {
 function fakeStore(cards: Card[] = []) {
   const store = {
     listCards: vi.fn(async () => cards),
-    appendCard: vi.fn(async (input: { title: string; status: Card["status"] }) => ({
+    appendCard: vi.fn(async (input: { title: string; description?: string; status: Card["status"] }) => ({
       id: "id-1",
-      description: "",
       position: 1,
       ...input,
+      description: input.description ?? "",
     })),
     updateCard: vi.fn(async (id: string, patch: { title?: string; description?: string }): Promise<Card | null> => {
       const found = cards.find((existing) => existing.id === id);
@@ -59,7 +59,7 @@ describe("cardService.createCard", () => {
 
     const result = await service.createCard("  Brancher Turso ");
 
-    expect(store.appendCard).toHaveBeenCalledWith({ title: "Brancher Turso", status: "todo" });
+    expect(store.appendCard).toHaveBeenCalledWith({ title: "Brancher Turso", description: "", status: "todo" });
     expect(result).toEqual({
       ok: true,
       card: { id: "id-1", position: 1, title: "Brancher Turso", description: "", status: "todo" },
@@ -82,6 +82,40 @@ describe("cardService.createCard", () => {
     const service = createCardService(store);
 
     await expect(service.createCard("Titre")).rejects.toThrow("base injoignable");
+  });
+});
+
+describe("cardService.createCard avec une description", () => {
+  // Issue #17 : description facultative saisie à la création, rognée
+  test("enregistre la description rognée avec la carte", async () => {
+    const store = fakeStore();
+
+    const result = await createCardService(store).createCard("Titre", "  Des détails ");
+
+    expect(store.appendCard).toHaveBeenCalledWith({ title: "Titre", description: "Des détails", status: "todo" });
+    expect(result).toEqual({ ok: true, card: { id: "id-1", position: 1, title: "Titre", description: "Des détails", status: "todo" } });
+  });
+
+  test.each([[undefined], [null], [""], ["   "]])("une description %j donne une description vide", async (description) => {
+    const store = fakeStore();
+
+    await createCardService(store).createCard("Titre", description);
+
+    expect(store.appendCard).toHaveBeenCalledWith({ title: "Titre", description: "", status: "todo" });
+  });
+
+  test("refuse une description qui n'est pas du texte", async () => {
+    const store = fakeStore();
+
+    await expect(createCardService(store).createCard("Titre", 42)).resolves.toEqual({ ok: false, error: "invalid_description" });
+    expect(store.appendCard).not.toHaveBeenCalled();
+  });
+
+  test("le titre reste obligatoire, même avec une description", async () => {
+    const store = fakeStore();
+
+    await expect(createCardService(store).createCard("  ", "Détails")).resolves.toEqual({ ok: false, error: "title_required" });
+    expect(store.appendCard).not.toHaveBeenCalled();
   });
 });
 
