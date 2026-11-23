@@ -1,4 +1,4 @@
-import { Archive, Ellipsis, GripVertical } from "lucide-react";
+import { Archive, Ellipsis, GripVertical, Trash2 } from "lucide-react";
 import type { DragEventHandler, KeyboardEventHandler } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,13 +11,14 @@ type CardItemProps = {
   grabbed: boolean;
   onOpen: () => void;
   onArchive: () => void;
+  onDelete: () => void;
   onHandleKeyDown: KeyboardEventHandler;
   onDragStart?: DragEventHandler;
   onDragEnd?: DragEventHandler;
   onDragOver?: DragEventHandler<HTMLDivElement>;
 };
 
-export function CardItem({ card, grabbed, onOpen, onArchive, onHandleKeyDown, onDragStart, onDragEnd, onDragOver }: CardItemProps) {
+export function CardItem({ card, grabbed, onOpen, onArchive, onDelete, onHandleKeyDown, onDragStart, onDragEnd, onDragOver }: CardItemProps) {
   return (
     <Card
       size="sm"
@@ -70,6 +71,10 @@ export function CardItem({ card, grabbed, onOpen, onArchive, onHandleKeyDown, on
           <DropdownMenuItem onClick={onArchive}>
             <Archive aria-hidden="true" />
             Archiver
+          </DropdownMenuItem>
+          <DropdownMenuItem variant="destructive" onClick={onDelete}>
+            <Trash2 aria-hidden="true" />
+            Supprimer
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

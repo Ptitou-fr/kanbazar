@@ -247,4 +247,39 @@ describe("cardStore", () => {
 
     await expect(createCardStore(() => db).archiveCard("a")).rejects.toThrow();
   });
+
+  // Lot 6, critère 3 : la carte n'existe plus en base, y compris après redémarrage
+  test("deleteCard efface la carte de la base, aussi pour un nouveau client", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "kanbazar-"));
+    dirs.push(dir);
+    const url = `file:${join(dir, "kanbazar.db")}`;
+
+    const firstDb = openDatabase({ url });
+    const store = createCardStore(() => firstDb);
+    const a = await store.appendCard({ title: "A", status: "todo" });
+    await store.appendCard({ title: "B", status: "todo" });
+    await expect(store.deleteCard(a.id)).resolves.toBe(true);
+    (await firstDb).close();
+
+    const secondDb = openDatabase({ url });
+    const cards = await createCardStore(() => secondDb).listCards();
+    const rows = await (await secondDb).execute({ sql: "SELECT COUNT(*) AS n FROM cards WHERE id = ?", args: [a.id] });
+    (await secondDb).close();
+    expect(cards.map((card) => card.title)).toEqual(["B"]);
+    expect(Number(rows.rows[0].n)).toBe(0);
+  });
+
+  test("deleteCard renvoie false pour une carte inconnue", async () => {
+    const { store } = memoryStore();
+
+    await expect(store.deleteCard("inconnue")).resolves.toBe(false);
+  });
+
+  // Lot 6, critère 4 : base injoignable
+  test("deleteCard échoue quand la base est injoignable", async () => {
+    const db = openDatabase({ url: "file:/kanbazar-dossier-inexistant/sous-dossier/kanbazar.db" });
+    db.catch(() => {});
+
+    await expect(createCardStore(() => db).deleteCard("a")).rejects.toThrow();
+  });
 });

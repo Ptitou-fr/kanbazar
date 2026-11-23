@@ -2,8 +2,9 @@
 
 import { startTransition, useEffect, useOptimistic, useState, type DragEvent, type KeyboardEvent } from "react";
 import { archiveCardAction } from "@/app/actions/archive-card";
+import { deleteCardAction } from "@/app/actions/delete-card";
 import { moveCardAction } from "@/app/actions/move-card";
-import { Archive } from "lucide-react";
+import { Archive, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,7 @@ import { CardEditor } from "./card-editor";
 import { CardItem } from "./card-item";
 import { columns } from "./columns";
 import { CreateCardForm } from "./create-card-form";
+import { DeleteCardDialog } from "./delete-card-dialog";
 import { notifySaveFailure } from "./save-failure";
 import { useSaveStatus } from "./save-status";
 
@@ -39,10 +41,13 @@ export function BoardView({ board }: { board: Board }) {
   const [grab, setGrab] = useState<Grab | null>(null);
   const [announce, setAnnounce] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { setState: setSaveState } = useSaveStatus();
 
   const shown = grab?.preview ?? saved;
-  const editing = editingId ? Object.values(saved).flat().find((card) => card.id === editingId) : undefined;
+  const findCard = (id: string | null) => (id ? Object.values(saved).flat().find((card) => card.id === id) : undefined);
+  const editing = findCard(editingId);
+  const deleting = findCard(deletingId);
 
   // Au clavier, la poignée garde le focus quand la carte change de colonne.
   const grabbedId = grab?.id;
@@ -92,6 +97,23 @@ export function BoardView({ board }: { board: Board }) {
       () => archiveCardAction(id),
       `« ${cardTitle(saved, id)} » n’a pas été archivée : elle reste sur le tableau.`,
       () => archive(id),
+    );
+  }
+
+  // Demande la confirmation ; la suppression se fait dans confirmDelete.
+  function askToDelete(id: string) {
+    setEditingId(null);
+    setDeletingId(id);
+  }
+
+  function confirmDelete(id: string) {
+    setDeletingId(null);
+    if (!locateCard(saved, id)) return;
+    saveBoard(
+      removeCardFromBoard(saved, id),
+      () => deleteCardAction(id),
+      `« ${cardTitle(saved, id)} » n’a pas été supprimée : elle reste sur le tableau.`,
+      () => confirmDelete(id),
     );
   }
 
@@ -227,6 +249,7 @@ export function BoardView({ board }: { board: Board }) {
                       grabbed={grab?.id === card.id}
                       onOpen={() => setEditingId(card.id)}
                       onArchive={() => archive(card.id)}
+                      onDelete={() => askToDelete(card.id)}
                       onHandleKeyDown={(event) => onHandleKeyDown(card.id, event)}
                       onDragStart={(event) => {
                         event.dataTransfer.effectAllowed = "move";
@@ -258,6 +281,7 @@ export function BoardView({ board }: { board: Board }) {
                           grabbed={false}
                           onOpen={() => {}}
                           onArchive={() => {}}
+                          onDelete={() => {}}
                           onHandleKeyDown={() => {}}
                           onDragEnd={() => setDrag(null)}
                         />
@@ -278,13 +302,20 @@ export function BoardView({ board }: { board: Board }) {
           card={editing}
           onClose={() => setEditingId(null)}
           actions={
-            <Button variant="outline" size="sm" onClick={() => archive(editing.id)}>
-              <Archive aria-hidden="true" />
-              Archiver
-            </Button>
+            <>
+              <Button variant="outline" size="sm" onClick={() => archive(editing.id)}>
+                <Archive aria-hidden="true" />
+                Archiver
+              </Button>
+              <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => askToDelete(editing.id)}>
+                <Trash2 aria-hidden="true" />
+                Supprimer
+              </Button>
+            </>
           }
         />
       )}
+      {deleting && <DeleteCardDialog card={deleting} onCancel={() => setDeletingId(null)} onConfirm={() => confirmDelete(deleting.id)} />}
     </>
   );
 }

@@ -14,6 +14,8 @@ export type UpdateCardResult =
 
 export type ArchiveCardResult = { ok: true } | { ok: false; error: "not_found" };
 
+export type DeleteCardResult = { ok: true } | { ok: false; error: "not_found" };
+
 export type MoveCardResult = { ok: true } | { ok: false; error: "invalid_status" | "invalid_position" | "not_found" };
 
 const statuses: readonly CardStatus[] = ["todo", "doing", "done"];
@@ -82,6 +84,11 @@ export function createCardService(store: CardStore) {
     // L'archivage retire la carte du tableau sans la perdre.
     async archiveCard(id: string): Promise<ArchiveCardResult> {
       return (await store.archiveCard(id)) ? { ok: true } : { ok: false, error: "not_found" };
+    },
+
+    // Suppression définitive : la confirmation se fait dans l'interface.
+    async deleteCard(id: string): Promise<DeleteCardResult> {
+      return (await store.deleteCard(id)) ? { ok: true } : { ok: false, error: "not_found" };
     },
   };
 }

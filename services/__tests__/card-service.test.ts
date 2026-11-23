@@ -21,6 +21,7 @@ function fakeStore(cards: Card[] = []) {
     }),
     placeCards: vi.fn<CardStore["placeCards"]>(async () => {}),
     archiveCard: vi.fn(async (id: string) => cards.some((existing) => existing.id === id)),
+    deleteCard: vi.fn(async (id: string) => cards.some((existing) => existing.id === id)),
   } satisfies CardStore;
   return store;
 }
@@ -262,5 +263,27 @@ describe("cardService.archiveCard", () => {
     store.archiveCard.mockRejectedValueOnce(new Error("base injoignable"));
 
     await expect(createCardService(store).archiveCard("a")).rejects.toThrow("base injoignable");
+  });
+});
+
+describe("cardService.deleteCard", () => {
+  // Lot 6, critère 3 : la carte est supprimée
+  test("supprime la carte", async () => {
+    const store = fakeStore([card({ id: "a" })]);
+
+    await expect(createCardService(store).deleteCard("a")).resolves.toEqual({ ok: true });
+    expect(store.deleteCard).toHaveBeenCalledWith("a");
+  });
+
+  test("signale une carte inconnue", async () => {
+    await expect(createCardService(fakeStore([])).deleteCard("a")).resolves.toEqual({ ok: false, error: "not_found" });
+  });
+
+  // Lot 6, critère 4 : l'échec d'enregistrement remonte
+  test("laisse remonter l'échec de la couche données", async () => {
+    const store = fakeStore([card({ id: "a" })]);
+    store.deleteCard.mockRejectedValueOnce(new Error("base injoignable"));
+
+    await expect(createCardService(store).deleteCard("a")).rejects.toThrow("base injoignable");
   });
 });

@@ -25,6 +25,8 @@ export type CardStore = {
   placeCards(status: CardStatus, ids: string[]): Promise<void>;
   // Marque la carte archivée sans toucher au reste ; false si elle n'est pas active.
   archiveCard(id: string): Promise<boolean>;
+  // Efface la carte définitivement ; false si elle n'existe pas.
+  deleteCard(id: string): Promise<boolean>;
 };
 
 const CARD_COLUMNS = "id, title, description, status, position";
@@ -93,6 +95,12 @@ export function createCardStore(getClient: () => Promise<Client>): CardStore {
         sql: "UPDATE cards SET archived_at = ? WHERE id = ? AND archived_at IS NULL",
         args: [new Date().toISOString(), id],
       });
+      return result.rowsAffected > 0;
+    },
+
+    async deleteCard(id) {
+      const client = await getClient();
+      const result = await client.execute({ sql: "DELETE FROM cards WHERE id = ?", args: [id] });
       return result.rowsAffected > 0;
     },
   };
