@@ -16,12 +16,15 @@ export type Card = {
 export type CardPatch = { title?: string; description?: string };
 
 export type CardStore = {
+  // Cartes actives seulement : les cartes archivées restent en base, hors tableau.
   listCards(): Promise<Card[]>;
   appendCard(input: { title: string; status: CardStatus }): Promise<Card>;
   // Renvoie la carte modifiée, ou null si elle n'existe pas.
   updateCard(id: string, patch: CardPatch): Promise<Card | null>;
   // Range la colonne : chaque carte prend cet état et la position de son rang.
   placeCards(status: CardStatus, ids: string[]): Promise<void>;
+  // Marque la carte archivée sans toucher au reste ; false si elle n'est pas active.
+  archiveCard(id: string): Promise<boolean>;
 };
 
 const CARD_COLUMNS = "id, title, description, status, position";
@@ -41,7 +44,7 @@ export function createCardStore(getClient: () => Promise<Client>): CardStore {
     async listCards() {
       const client = await getClient();
       const result = await client.execute(
-        `SELECT ${CARD_COLUMNS} FROM cards
+        `SELECT ${CARD_COLUMNS} FROM cards WHERE archived_at IS NULL
          ORDER BY CASE status WHEN 'todo' THEN 0 WHEN 'doing' THEN 1 ELSE 2 END, position`,
       );
       return result.rows.map(toCard);
@@ -82,6 +85,15 @@ export function createCardStore(getClient: () => Promise<Client>): CardStore {
         })),
         "write",
       );
+    },
+
+    async archiveCard(id) {
+      const client = await getClient();
+      const result = await client.execute({
+        sql: "UPDATE cards SET archived_at = ? WHERE id = ? AND archived_at IS NULL",
+        args: [new Date().toISOString(), id],
+      });
+      return result.rowsAffected > 0;
     },
   };
 }

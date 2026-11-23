@@ -20,6 +20,7 @@ function fakeStore(cards: Card[] = []) {
       return found ? { ...found, ...patch } : null;
     }),
     placeCards: vi.fn<CardStore["placeCards"]>(async () => {}),
+    archiveCard: vi.fn(async (id: string) => cards.some((existing) => existing.id === id)),
   } satisfies CardStore;
   return store;
 }
@@ -237,5 +238,29 @@ describe("cardService.moveCard dans une même colonne", () => {
 
     await createCardService(store).moveCard("a", "todo", 1);
     expect(store.placeCards).toHaveBeenCalledWith("todo", ["b", "a", "c"]);
+  });
+});
+
+describe("cardService.archiveCard", () => {
+  // Lot 5, critère 1 : la carte est archivée
+  test("archive une carte active", async () => {
+    const store = fakeStore([card({ id: "a" })]);
+
+    await expect(createCardService(store).archiveCard("a")).resolves.toEqual({ ok: true });
+    expect(store.archiveCard).toHaveBeenCalledWith("a");
+  });
+
+  test("signale une carte inconnue ou déjà archivée", async () => {
+    const store = fakeStore([]);
+
+    await expect(createCardService(store).archiveCard("a")).resolves.toEqual({ ok: false, error: "not_found" });
+  });
+
+  // Lot 5, critère 4 : l'échec d'enregistrement remonte
+  test("laisse remonter l'échec de la couche données", async () => {
+    const store = fakeStore([card({ id: "a" })]);
+    store.archiveCard.mockRejectedValueOnce(new Error("base injoignable"));
+
+    await expect(createCardService(store).archiveCard("a")).rejects.toThrow("base injoignable");
   });
 });

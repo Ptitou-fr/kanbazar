@@ -1,7 +1,8 @@
-import { GripVertical } from "lucide-react";
+import { Archive, Ellipsis, GripVertical } from "lucide-react";
 import type { DragEventHandler, KeyboardEventHandler } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { Card as CardData } from "@/services/card-service";
 
@@ -9,13 +10,14 @@ type CardItemProps = {
   card: CardData;
   grabbed: boolean;
   onOpen: () => void;
+  onArchive: () => void;
   onHandleKeyDown: KeyboardEventHandler;
   onDragStart?: DragEventHandler;
   onDragEnd?: DragEventHandler;
   onDragOver?: DragEventHandler<HTMLDivElement>;
 };
 
-export function CardItem({ card, grabbed, onOpen, onHandleKeyDown, onDragStart, onDragEnd, onDragOver }: CardItemProps) {
+export function CardItem({ card, grabbed, onOpen, onArchive, onHandleKeyDown, onDragStart, onDragEnd, onDragOver }: CardItemProps) {
   return (
     <Card
       size="sm"
@@ -25,7 +27,7 @@ export function CardItem({ card, grabbed, onOpen, onHandleKeyDown, onDragStart, 
       onDragEnd={onDragEnd}
       onDragOver={onDragOver}
       className={cn(
-        "relative grid cursor-grab grid-cols-[auto_1fr] gap-x-1.5 gap-y-0.5 py-2.5 pr-3 pl-1.5 shadow-xs transition-[box-shadow,translate] hover:ring-primary/35 motion-reduce:transition-none",
+        "relative grid cursor-grab grid-cols-[auto_1fr_auto] gap-x-1.5 gap-y-0.5 py-2.5 pr-2 pl-1.5 shadow-xs transition-[box-shadow,translate] hover:ring-primary/35 motion-reduce:transition-none",
         grabbed && "-translate-y-0.5 shadow-lg ring-2 ring-ring hover:ring-ring",
       )}
     >
@@ -51,6 +53,26 @@ export function CardItem({ card, grabbed, onOpen, onHandleKeyDown, onDragStart, 
           {card.title}
         </Button>
       </h3>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={`Actions pour « ${card.title} »`}
+              className="relative z-10 row-span-2 text-muted-foreground"
+            />
+          }
+        >
+          <Ellipsis aria-hidden="true" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuItem onClick={onArchive}>
+            <Archive aria-hidden="true" />
+            Archiver
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       {card.description && <p className="col-start-2 line-clamp-2 text-[13px] leading-normal text-muted-foreground">{card.description}</p>}
     </Card>
   );

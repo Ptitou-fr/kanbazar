@@ -187,4 +187,64 @@ describe("cardStore", () => {
     (await secondDb).close();
     expect(cards.map((card) => card.title)).toEqual(["C", "A", "B"]);
   });
+
+  // Lot 5, critères 1 et 2 : une carte archivée quitte le tableau, aussi après redémarrage
+  test("archiveCard retire la carte de listCards, y compris pour un nouveau client", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "kanbazar-"));
+    dirs.push(dir);
+    const url = `file:${join(dir, "kanbazar.db")}`;
+
+    const firstDb = openDatabase({ url });
+    const store = createCardStore(() => firstDb);
+    const a = await store.appendCard({ title: "A", status: "todo" });
+    await store.appendCard({ title: "B", status: "todo" });
+    await expect(store.archiveCard(a.id)).resolves.toBe(true);
+    expect((await store.listCards()).map((card) => card.title)).toEqual(["B"]);
+    (await firstDb).close();
+
+    const secondDb = openDatabase({ url });
+    const cards = await createCardStore(() => secondDb).listCards();
+    (await secondDb).close();
+    expect(cards.map((card) => card.title)).toEqual(["B"]);
+  });
+
+  // Lot 5, critère 3 : en base, la carte archivée garde contenu, état et position
+  test("archiveCard garde la carte en base, marquée archivée, avec son contenu, son état et sa position", async () => {
+    const { db, store } = memoryStore();
+    await store.appendCard({ title: "Première", status: "doing" });
+    const card = await store.appendCard({ title: "À archiver", status: "doing" });
+    await store.updateCard(card.id, { description: "Détails" });
+
+    await store.archiveCard(card.id);
+
+    const result = await (await db).execute({
+      sql: "SELECT title, description, status, position, archived_at FROM cards WHERE id = ?",
+      args: [card.id],
+    });
+    const row = result.rows[0];
+    expect({ title: row.title, description: row.description, status: row.status, position: Number(row.position) }).toEqual({
+      title: "À archiver",
+      description: "Détails",
+      status: "doing",
+      position: card.position,
+    });
+    expect(row.archived_at).toEqual(expect.any(String));
+  });
+
+  test("archiveCard renvoie false pour une carte inconnue ou déjà archivée", async () => {
+    const { store } = memoryStore();
+    const card = await store.appendCard({ title: "A", status: "todo" });
+    await store.archiveCard(card.id);
+
+    await expect(store.archiveCard(card.id)).resolves.toBe(false);
+    await expect(store.archiveCard("inconnue")).resolves.toBe(false);
+  });
+
+  // Lot 5, critère 4 : base injoignable
+  test("archiveCard échoue quand la base est injoignable", async () => {
+    const db = openDatabase({ url: "file:/kanbazar-dossier-inexistant/sous-dossier/kanbazar.db" });
+    db.catch(() => {});
+
+    await expect(createCardStore(() => db).archiveCard("a")).rejects.toThrow();
+  });
 });

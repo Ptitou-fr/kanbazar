@@ -1,11 +1,14 @@
 "use client";
 
 import { startTransition, useEffect, useOptimistic, useState, type DragEvent, type KeyboardEvent } from "react";
-import { moveCardAction, type MoveCardState } from "@/app/actions/move-card";
+import { archiveCardAction } from "@/app/actions/archive-card";
+import { moveCardAction } from "@/app/actions/move-card";
+import { Archive } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { cn } from "@/lib/utils";
 import type { Board, CardStatus } from "@/services/card-service";
-import { locateCard, moveCardInBoard, type Slot } from "./board-moves";
+import { locateCard, moveCardInBoard, removeCardFromBoard, type Slot } from "./board-moves";
 import { CardEditor } from "./card-editor";
 import { CardItem } from "./card-item";
 import { columns } from "./columns";
@@ -47,30 +50,49 @@ export function BoardView({ board }: { board: Board }) {
     if (grabbedId) document.querySelector<HTMLElement>(`[data-handle="${grabbedId}"]`)?.focus();
   }, [grabbedId, shown]);
 
-  function commitMove(id: string, status: CardStatus, index: number) {
-    const from = locateCard(saved, id);
-    if (!from || (from.status === status && from.index === index)) return;
-    const title = cardTitle(saved, id);
-    const next = moveCardInBoard(saved, id, status, index);
+  // Affiche `next` tout de suite, puis enregistre. En cas d'échec, la
+  // transition se termine sans nouveau tableau : l'aperçu disparaît et le
+  // tableau enregistré revient.
+  function saveBoard(next: Board, run: () => Promise<{ ok: boolean }>, failure: string, retry: () => void) {
     setSaveState("saving");
     startTransition(async () => {
       setOptimisticBoard(next);
-      let result: MoveCardState;
+      let ok = false;
       try {
-        result = await moveCardAction(id, status, index);
+        ok = (await run()).ok;
       } catch {
-        result = { ok: false, error: "save_failed" };
+        ok = false;
       }
-      // En cas d'échec, la transition se termine sans nouveau tableau :
-      // l'aperçu disparaît et la carte revient à son état enregistré.
-      if (result.ok) {
+      if (ok) {
         setSaveState("saved");
         return;
       }
       setSaveState("error");
-      setAnnounce(`Échec de l’enregistrement : « ${title} » revient à sa place.`);
-      notifySaveFailure(`« ${title} » n’a pas été déplacée : elle revient à sa place.`, () => commitMove(id, status, index));
+      setAnnounce(`Échec de l’enregistrement : ${failure}`);
+      notifySaveFailure(failure, retry);
     });
+  }
+
+  function commitMove(id: string, status: CardStatus, index: number) {
+    const from = locateCard(saved, id);
+    if (!from || (from.status === status && from.index === index)) return;
+    saveBoard(
+      moveCardInBoard(saved, id, status, index),
+      () => moveCardAction(id, status, index),
+      `« ${cardTitle(saved, id)} » n’a pas été déplacée : elle revient à sa place.`,
+      () => commitMove(id, status, index),
+    );
+  }
+
+  function archive(id: string) {
+    if (!locateCard(saved, id)) return;
+    setEditingId(null);
+    saveBoard(
+      removeCardFromBoard(saved, id),
+      () => archiveCardAction(id),
+      `« ${cardTitle(saved, id)} » n’a pas été archivée : elle reste sur le tableau.`,
+      () => archive(id),
+    );
   }
 
   function describe(board: Board, id: string) {
@@ -204,6 +226,7 @@ export function BoardView({ board }: { board: Board }) {
                       card={card}
                       grabbed={grab?.id === card.id}
                       onOpen={() => setEditingId(card.id)}
+                      onArchive={() => archive(card.id)}
                       onHandleKeyDown={(event) => onHandleKeyDown(card.id, event)}
                       onDragStart={(event) => {
                         event.dataTransfer.effectAllowed = "move";
@@ -230,7 +253,14 @@ export function BoardView({ board }: { board: Board }) {
                     .filter((card) => card.id === drag.id)
                     .map((card) => (
                       <li key={card.id} hidden>
-                        <CardItem card={card} grabbed={false} onOpen={() => {}} onHandleKeyDown={() => {}} onDragEnd={() => setDrag(null)} />
+                        <CardItem
+                          card={card}
+                          grabbed={false}
+                          onOpen={() => {}}
+                          onArchive={() => {}}
+                          onHandleKeyDown={() => {}}
+                          onDragEnd={() => setDrag(null)}
+                        />
                       </li>
                     ))}
               </ol>
@@ -242,7 +272,19 @@ export function BoardView({ board }: { board: Board }) {
       <p role="status" className="sr-only">
         {announce}
       </p>
-      {editing && <CardEditor key={editing.id} card={editing} onClose={() => setEditingId(null)} />}
+      {editing && (
+        <CardEditor
+          key={editing.id}
+          card={editing}
+          onClose={() => setEditingId(null)}
+          actions={
+            <Button variant="outline" size="sm" onClick={() => archive(editing.id)}>
+              <Archive aria-hidden="true" />
+              Archiver
+            </Button>
+          }
+        />
+      )}
     </>
   );
 }

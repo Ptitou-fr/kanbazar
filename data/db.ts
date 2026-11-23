@@ -19,6 +19,8 @@ const migrations: string[][] = [
     "CREATE INDEX cards_status_position ON cards (status, position)",
   ],
   ["ALTER TABLE cards ADD COLUMN description TEXT NOT NULL DEFAULT ''"],
+  // Carte archivée : date d'archivage ; NULL pour une carte active.
+  ["ALTER TABLE cards ADD COLUMN archived_at TEXT"],
 ];
 
 async function migrate(client: Client) {

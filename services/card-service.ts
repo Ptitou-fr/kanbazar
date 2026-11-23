@@ -12,6 +12,8 @@ export type UpdateCardResult =
   | { ok: true; card: Card }
   | { ok: false; error: "title_required" | "invalid_description" | "not_found" };
 
+export type ArchiveCardResult = { ok: true } | { ok: false; error: "not_found" };
+
 export type MoveCardResult = { ok: true } | { ok: false; error: "invalid_status" | "invalid_position" | "not_found" };
 
 const statuses: readonly CardStatus[] = ["todo", "doing", "done"];
@@ -75,6 +77,11 @@ export function createCardService(store: CardStore) {
       column.splice(at, 0, id);
       await store.placeCards(status, column);
       return { ok: true };
+    },
+
+    // L'archivage retire la carte du tableau sans la perdre.
+    async archiveCard(id: string): Promise<ArchiveCardResult> {
+      return (await store.archiveCard(id)) ? { ok: true } : { ok: false, error: "not_found" };
     },
   };
 }

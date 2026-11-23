@@ -24,3 +24,11 @@ export function moveCardInBoard(board: Board, id: string, status: CardStatus, in
   next[status].splice(at, 0, { ...card, status });
   return next;
 }
+
+export function removeCardFromBoard(board: Board, id: string): Board {
+  return {
+    todo: board.todo.filter((card) => card.id !== id),
+    doing: board.doing.filter((card) => card.id !== id),
+    done: board.done.filter((card) => card.id !== id),
+  };
+}
