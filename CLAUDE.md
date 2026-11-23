@@ -55,7 +55,7 @@ Server Components async : tester des composants synchrones.
 - Base : SQLite via Turso (`@libsql/client`, dans `data/` seulement).
   `TURSO_DATABASE_URL` et `TURSO_AUTH_TOKEN` ; sans URL hors production,
   base locale `.data/kanbazar.db` (ignorée par git), schéma migré à
-  l'ouverture (`PRAGMA user_version`, `data/db.ts`).
+  l'ouverture (table `schema_version`, `data/db.ts` ; Turso refuse d'écrire `PRAGMA user_version`).
 - Alias de chemin : `@/*` → racine du dépôt.
 - `.env*` est ignoré par git ; les identifiants Turso vont là et dans les
   variables d'environnement Vercel.

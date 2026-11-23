@@ -38,7 +38,7 @@ Vercel déploie `main` en production, et chaque autre branche poussée en prévi
   `aws-us-west-2` (Oregon), à côté.
 - **Base** : une seule base Turso `kanbazar`, partagée par la production et les
   prévisualisations. Une prévisualisation modifie donc les vraies cartes.
-  Le schéma se migre tout seul au premier accès (`PRAGMA user_version`, `data/db.ts`).
+  Le schéma se migre tout seul au premier accès (table `schema_version`, `data/db.ts` ; Turso refuse d'écrire `PRAGMA user_version`).
 - **Variables** : `TURSO_DATABASE_URL` et `TURSO_AUTH_TOKEN`, type Sensitive,
   cibles Production et Preview. Sans elles, l'app refuse de démarrer en production.
 - **Accès** : Vercel Authentication sur **All Deployments** (Settings ›
