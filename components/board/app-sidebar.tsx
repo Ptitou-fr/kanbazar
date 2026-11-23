@@ -16,7 +16,7 @@ import type { CardStatus } from "@/services/card-service";
 import { columns } from "./columns";
 import { Logo } from "./logo";
 import { NewCardButton } from "./new-card-button";
-import { SaveStatus } from "./save-status";
+import { ThemeSwitcher } from "@/components/theme/theme-switcher";
 
 type AppSidebarProps = { counts: Record<CardStatus, number> };
 
@@ -56,7 +56,7 @@ export function AppSidebar({ counts }: AppSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-3">
-        <SaveStatus />
+        <ThemeSwitcher />
       </SidebarFooter>
     </Sidebar>
   );

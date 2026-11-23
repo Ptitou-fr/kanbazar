@@ -1,13 +1,16 @@
 "use client"
 
 import { Toaster as Sonner, type ToasterProps } from "sonner"
+import { useTheme } from "@/components/theme/theme-provider"
 import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
 
 const Toaster = ({ ...props }: ToasterProps) => {
+  const { resolved } = useTheme()
+
   return (
     <Sonner
-      // Le thème suit prefers-color-scheme, comme app/globals.css.
-      theme="system"
+      // Le thème suit le choix Clair / Sombre / Système de l'app.
+      theme={resolved}
       className="toaster group"
       icons={{
         success: (

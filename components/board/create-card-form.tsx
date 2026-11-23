@@ -6,7 +6,6 @@ import { createCardAction } from "@/app/actions/create-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NEW_CARD_INPUT_ID } from "./columns";
-import { useSaveStatus } from "./save-status";
 
 type FormError = "title_required" | "save_failed" | null;
 
@@ -14,7 +13,6 @@ export function CreateCardForm() {
   const [title, setTitle] = useState("");
   const [error, setError] = useState<FormError>(null);
   const [pending, startTransition] = useTransition();
-  const { setState: setSaveState } = useSaveStatus();
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -25,7 +23,6 @@ export function CreateCardForm() {
     const formData = new FormData();
     formData.set("title", title);
     setError(null);
-    setSaveState("saving");
     startTransition(async () => {
       let result: Awaited<ReturnType<typeof createCardAction>>;
       try {
@@ -33,13 +30,8 @@ export function CreateCardForm() {
       } catch {
         result = { ok: false, error: "save_failed" };
       }
-      if (result.ok) {
-        setTitle("");
-        setSaveState("saved");
-      } else {
-        setError(result.error);
-        setSaveState(result.error === "save_failed" ? "error" : "saved");
-      }
+      if (result.ok) setTitle("");
+      else setError(result.error);
     });
   }
 
