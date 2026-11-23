@@ -8,19 +8,27 @@ export type CardStatus = "todo" | "doing" | "done";
 export type Card = {
   id: string;
   title: string;
+  description: string;
   status: CardStatus;
   position: number;
 };
 
+export type CardPatch = { title?: string; description?: string };
+
 export type CardStore = {
   listCards(): Promise<Card[]>;
   appendCard(input: { title: string; status: CardStatus }): Promise<Card>;
+  // Renvoie la carte modifiée, ou null si elle n'existe pas.
+  updateCard(id: string, patch: CardPatch): Promise<Card | null>;
 };
+
+const CARD_COLUMNS = "id, title, description, status, position";
 
 function toCard(row: Row): Card {
   return {
     id: String(row.id),
     title: String(row.title),
+    description: String(row.description),
     status: row.status as CardStatus,
     position: Number(row.position),
   };
@@ -31,7 +39,7 @@ export function createCardStore(getClient: () => Promise<Client>): CardStore {
     async listCards() {
       const client = await getClient();
       const result = await client.execute(
-        `SELECT id, title, status, position FROM cards
+        `SELECT ${CARD_COLUMNS} FROM cards
          ORDER BY CASE status WHEN 'todo' THEN 0 WHEN 'doing' THEN 1 ELSE 2 END, position`,
       );
       return result.rows.map(toCard);
@@ -44,10 +52,22 @@ export function createCardStore(getClient: () => Promise<Client>): CardStore {
       const result = await client.execute({
         sql: `INSERT INTO cards (id, title, status, position, created_at)
               VALUES (?, ?, ?, (SELECT COALESCE(MAX(position), 0) + 1 FROM cards WHERE status = ?), ?)
-              RETURNING id, title, status, position`,
+              RETURNING ${CARD_COLUMNS}`,
         args: [id, title, status, status, new Date().toISOString()],
       });
       return toCard(result.rows[0]);
+    },
+
+    async updateCard(id, { title, description }) {
+      const client = await getClient();
+      // Un champ absent (null) garde sa valeur.
+      const result = await client.execute({
+        sql: `UPDATE cards SET title = COALESCE(?, title), description = COALESCE(?, description)
+              WHERE id = ?
+              RETURNING ${CARD_COLUMNS}`,
+        args: [title ?? null, description ?? null, id],
+      });
+      return result.rows[0] ? toCard(result.rows[0]) : null;
     },
   };
 }

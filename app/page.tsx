@@ -6,6 +6,7 @@ import { Logo } from "@/components/board/logo";
 import { NewCardButton } from "@/components/board/new-card-button";
 import { SaveStatusProvider } from "@/components/board/save-status";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/sonner";
 import { cardService } from "@/services/card-service";
 
 export default function Home() {
@@ -46,6 +47,7 @@ async function BoardPage() {
           </div>
         </SidebarInset>
       </SidebarProvider>
+      <Toaster position="bottom-right" />
     </SaveStatusProvider>
   );
 }

@@ -74,4 +74,48 @@ describe("cardStore", () => {
 
     await expect(store.appendCard({ title: "Perdue", status: "todo" })).rejects.toThrow();
   });
+
+  // Lot 2, critère 1 et 2 : titre et description modifiés, conservés après redémarrage
+  test("updateCard modifie le titre et la description, relus par un nouveau client", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "kanbazar-"));
+    dirs.push(dir);
+    const url = `file:${join(dir, "kanbazar.db")}`;
+
+    const firstDb = openDatabase({ url });
+    const store = createCardStore(() => firstDb);
+    const card = await store.appendCard({ title: "Avant", status: "todo" });
+    expect(card.description).toBe("");
+    const renamed = await store.updateCard(card.id, { title: "Après" });
+    const described = await store.updateCard(card.id, { description: "Détails" });
+    (await firstDb).close();
+
+    expect(renamed).toEqual({ ...card, title: "Après" });
+    expect(described).toEqual({ ...card, title: "Après", description: "Détails" });
+    const secondDb = openDatabase({ url });
+    const cards = await createCardStore(() => secondDb).listCards();
+    (await secondDb).close();
+    expect(cards).toEqual([{ ...card, title: "Après", description: "Détails" }]);
+  });
+
+  test("updateCard efface la description sans toucher au titre", async () => {
+    const { store } = memoryStore();
+    const card = await store.appendCard({ title: "Titre", status: "todo" });
+    await store.updateCard(card.id, { description: "À effacer" });
+
+    await expect(store.updateCard(card.id, { description: "" })).resolves.toEqual({ ...card, description: "" });
+  });
+
+  test("updateCard renvoie null pour une carte inconnue", async () => {
+    const { store } = memoryStore();
+
+    await expect(store.updateCard("inconnue", { title: "X" })).resolves.toBeNull();
+  });
+
+  // Lot 2, critère 4 : base injoignable
+  test("updateCard échoue quand la base est injoignable", async () => {
+    const db = openDatabase({ url: "file:/kanbazar-dossier-inexistant/sous-dossier/kanbazar.db" });
+    db.catch(() => {});
+
+    await expect(createCardStore(() => db).updateCard("id", { title: "X" })).rejects.toThrow();
+  });
 });

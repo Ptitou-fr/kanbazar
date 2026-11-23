@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
 vi.mock("@/app/actions/create-card", () => ({ createCardAction: vi.fn() }));
+vi.mock("@/app/actions/update-card", () => ({ updateCardAction: vi.fn() }));
 
 import { BoardView } from "@/components/board/board-view";
 import type { Board } from "@/services/card-service";
@@ -27,15 +28,15 @@ describe("BoardView", () => {
     const board: Board = {
       ...emptyBoard,
       todo: [
-        { id: "a", title: "Première", status: "todo", position: 1 },
-        { id: "b", title: "Nouvelle", status: "todo", position: 2 },
+        { id: "a", title: "Première", description: "", status: "todo", position: 1 },
+        { id: "b", title: "Nouvelle", description: "", status: "todo", position: 2 },
       ],
     };
 
     render(<BoardView board={board} />);
 
     const todo = screen.getByRole("region", { name: "À faire" });
-    const titles = within(todo).getAllByRole("listitem").map((item) => item.textContent);
+    const titles = within(todo).getAllByRole("listitem").map((item) => within(item).getByRole("heading").textContent);
     expect(titles).toEqual(["Première", "Nouvelle"]);
     expect(within(todo).getByText("2")).toBeDefined();
   });
@@ -45,5 +46,23 @@ describe("BoardView", () => {
     render(<BoardView board={emptyBoard} />);
 
     expect(screen.queryByRole("button", { name: /enregistrer/i })).toBeNull();
+  });
+
+  // Lot 2 : la carte affiche sa description et s'ouvre dans le panneau d'édition
+  test("affiche la description d'une carte et l'ouvre en édition au clic", () => {
+    const board: Board = {
+      ...emptyBoard,
+      doing: [{ id: "c", title: "Glisser-déposer", description: "Avec le clavier aussi.", status: "doing", position: 1 }],
+    };
+    render(<BoardView board={board} />);
+
+    const doing = screen.getByRole("region", { name: "En cours" });
+    expect(within(doing).getByText("Avec le clavier aussi.")).toBeDefined();
+
+    fireEvent.click(within(doing).getByRole("button", { name: "Glisser-déposer" }));
+
+    const dialog = screen.getByRole("dialog", { name: "Modifier la carte" });
+    expect((within(dialog).getByLabelText("Titre") as HTMLInputElement).value).toBe("Glisser-déposer");
+    expect((within(dialog).getByLabelText("Description") as HTMLTextAreaElement).value).toBe("Avec le clavier aussi.");
   });
 });

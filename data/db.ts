@@ -18,6 +18,7 @@ const migrations: string[][] = [
     )`,
     "CREATE INDEX cards_status_position ON cards (status, position)",
   ],
+  ["ALTER TABLE cards ADD COLUMN description TEXT NOT NULL DEFAULT ''"],
 ];
 
 async function migrate(client: Client) {

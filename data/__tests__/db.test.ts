@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
-import { databaseConfigFromEnv } from "@/data/db";
+import { databaseConfigFromEnv, openDatabase } from "@/data/db";
 
 describe("databaseConfigFromEnv", () => {
   const dirs: string[] = [];
@@ -28,5 +28,30 @@ describe("databaseConfigFromEnv", () => {
 
     expect(config).toEqual({ url: `file:${join(root, ".data", "kanbazar.db")}` });
     expect(existsSync(join(root, ".data"))).toBe(true);
+  });
+
+  // Lot 2 : une base créée au lot 1 reçoit la colonne description, ses cartes gardent leur contenu
+  test("migre une base du lot 1 en gardant ses cartes, description vide", async () => {
+    const { createClient } = await import("@libsql/client");
+    const dir = mkdtempSync(join(tmpdir(), "kanbazar-"));
+    dirs.push(dir);
+    const url = `file:${join(dir, "kanbazar.db")}`;
+    const old = createClient({ url });
+    await old.batch(
+      [
+        "CREATE TABLE cards (id TEXT PRIMARY KEY, title TEXT NOT NULL, status TEXT NOT NULL CHECK (status IN ('todo', 'doing', 'done')), position INTEGER NOT NULL, created_at TEXT NOT NULL)",
+        "CREATE INDEX cards_status_position ON cards (status, position)",
+        "INSERT INTO cards VALUES ('a', 'Ancienne', 'todo', 1, '2026-11-01T00:00:00.000Z')",
+        "PRAGMA user_version = 1",
+      ],
+      "write",
+    );
+    old.close();
+
+    const client = await openDatabase({ url });
+    const result = await client.execute("SELECT id, title, description FROM cards");
+    client.close();
+
+    expect(result.rows.map((row) => ({ id: row.id, title: row.title, description: row.description }))).toEqual([{ id: "a", title: "Ancienne", description: "" }]);
   });
 });
