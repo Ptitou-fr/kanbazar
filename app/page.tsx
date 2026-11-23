@@ -6,7 +6,6 @@ import { Logo } from "@/components/board/logo";
 import { NewCardButton } from "@/components/board/new-card-button";
 import { SaveStatusProvider } from "@/components/board/save-status";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Kbd } from "@/components/ui/kbd";
 import { Toaster } from "@/components/ui/sonner";
 import { cardService } from "@/services/card-service";
 
@@ -46,12 +45,7 @@ async function BoardPage() {
                   {total} {total > 1 ? "cartes actives" : "carte active"}
                 </p>
               </div>
-              <p className="hidden flex-wrap items-center gap-1.5 text-[13px] text-muted-foreground md:flex">
-                Glissez une carte pour la déplacer · au clavier : <Kbd>Espace</Kbd> puis <Kbd>←</Kbd>
-                <Kbd>→</Kbd>
-                <Kbd>↑</Kbd>
-                <Kbd>↓</Kbd>
-              </p>
+              <p className="hidden text-[13px] text-muted-foreground md:block">Glissez une carte pour la déplacer</p>
             </div>
             <BoardView board={board} />
           </div>
