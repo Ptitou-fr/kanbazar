@@ -18,9 +18,28 @@ Gestionnaire de paquets : pnpm (`packageManager: pnpm@10.32.1`).
 pnpm dev      # next dev
 pnpm build    # build de production, doit passer (critère d'acceptation)
 pnpm lint     # eslint, config flat (next core-web-vitals + typescript)
+pnpm test     # vitest run, une seule exécution
+pnpm test services/__tests__/example-service.test.ts   # un seul fichier
 ```
 
-Aucun lanceur de tests n'est encore installé ; son choix reste ouvert.
+Tests dans un dossier `__tests__/` à l'intérieur de leur couche
+(`data/__tests__/`, `services/__tests__/`, `components/__tests__/`), nommés
+`*.test.ts[x]` et important via `@/`. Ils sont soumis aux mêmes frontières
+ESLint que leur couche. Environnement `node` par défaut ; un test
+de présentation passe en jsdom avec `// @vitest-environment jsdom` en tête.
+`server-only` est neutralisé dans `vitest.setup.ts`. Vitest ne rend pas les
+Server Components async : tester des composants synchrones.
+
+## Couches
+
+- Présentation : `app/` (points d'entrée Next) et `components/`.
+- Service : `services/`, reçoit la couche données par injection
+  (`createXService(store)`) pour être testé avec un faux, sans base.
+- Données : `data/`, seul endroit autorisé pour le pilote.
+- `services/` et `data/` commencent par `import "server-only"`.
+- `eslint.config.mjs` fait appliquer ces frontières (`no-restricted-imports`) :
+  `pnpm lint` échoue sur un import interdit entre couches.
+- `*/example-*` sont des exemples vides, à remplacer par le vrai code.
 
 ## Particularités de la stack
 
