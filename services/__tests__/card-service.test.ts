@@ -19,6 +19,7 @@ function fakeStore(cards: Card[] = []) {
       const found = cards.find((existing) => existing.id === id);
       return found ? { ...found, ...patch } : null;
     }),
+    placeCards: vi.fn<CardStore["placeCards"]>(async () => {}),
   } satisfies CardStore;
   return store;
 }
@@ -151,5 +152,66 @@ describe("cardService.updateCard", () => {
     store.updateCard.mockRejectedValueOnce(new Error("base injoignable"));
 
     await expect(createCardService(store).updateCard("a", { title: "X" })).rejects.toThrow("base injoignable");
+  });
+});
+
+describe("cardService.moveCard", () => {
+  const board = [
+    card({ id: "a", status: "todo", position: 1 }),
+    card({ id: "b", status: "todo", position: 2 }),
+    card({ id: "c", status: "doing", position: 1 }),
+    card({ id: "d", status: "doing", position: 2 }),
+  ];
+
+  // Lot 3, critère 1 : déposée dans « En cours » à l'endroit du dépôt
+  test("place la carte dans la nouvelle colonne, à l'index demandé", async () => {
+    const store = fakeStore(board);
+
+    await expect(createCardService(store).moveCard("a", "doing", 1)).resolves.toEqual({ ok: true });
+    expect(store.placeCards).toHaveBeenCalledWith("doing", ["c", "a", "d"]);
+  });
+
+  // Lot 3, critère 2 : vers une autre colonne au clavier, la carte arrive en bas
+  test.each([[2], [99]])("place la carte en bas de la colonne pour l'index %j", async (index) => {
+    const store = fakeStore(board);
+
+    await createCardService(store).moveCard("b", "doing", index);
+    expect(store.placeCards).toHaveBeenCalledWith("doing", ["c", "d", "b"]);
+  });
+
+  test("ramène un index négatif en haut de la colonne", async () => {
+    const store = fakeStore(board);
+
+    await createCardService(store).moveCard("d", "todo", -3);
+    expect(store.placeCards).toHaveBeenCalledWith("todo", ["d", "a", "b"]);
+  });
+
+  test("refuse un état inconnu sans rien enregistrer", async () => {
+    const store = fakeStore(board);
+
+    await expect(createCardService(store).moveCard("a", "archived", 0)).resolves.toEqual({ ok: false, error: "invalid_status" });
+    expect(store.placeCards).not.toHaveBeenCalled();
+  });
+
+  test.each([[1.5], ["1"], [null]])("refuse la position %j sans rien enregistrer", async (index) => {
+    const store = fakeStore(board);
+
+    await expect(createCardService(store).moveCard("a", "doing", index)).resolves.toEqual({ ok: false, error: "invalid_position" });
+    expect(store.placeCards).not.toHaveBeenCalled();
+  });
+
+  test("signale une carte inconnue", async () => {
+    const store = fakeStore(board);
+
+    await expect(createCardService(store).moveCard("z", "doing", 0)).resolves.toEqual({ ok: false, error: "not_found" });
+    expect(store.placeCards).not.toHaveBeenCalled();
+  });
+
+  // Lot 3, critère 4 : l'échec d'enregistrement remonte
+  test("laisse remonter l'échec de la couche données", async () => {
+    const store = fakeStore(board);
+    store.placeCards.mockRejectedValueOnce(new Error("base injoignable"));
+
+    await expect(createCardService(store).moveCard("a", "doing", 0)).rejects.toThrow("base injoignable");
   });
 });

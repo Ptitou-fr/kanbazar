@@ -2,7 +2,6 @@
 
 import { CircleAlert, CircleCheck, LoaderCircle, X } from "lucide-react";
 import { startTransition, useEffect, useRef, useState, type ReactNode } from "react";
-import { toast } from "sonner";
 import { updateCardAction, type UpdateCardState } from "@/app/actions/update-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +10,7 @@ import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/she
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { Card } from "@/services/card-service";
+import { notifySaveFailure } from "./save-failure";
 import { useSaveStatus } from "./save-status";
 
 type Field = "title" | "description";
@@ -18,9 +18,6 @@ type Values = Record<Field, string>;
 
 // Attente avant d'enregistrer la description pendant la frappe.
 const DESCRIPTION_DELAY_MS = 800;
-
-// Un échec reste affiché le temps de lire le message et de réessayer.
-const FAILURE_TOAST_MS = 10_000;
 
 const statusLabels = {
   saved: "Enregistré",
@@ -84,11 +81,7 @@ export function CardEditor({ card, onClose, actions }: CardEditorProps) {
       }
       markFailed(field, true);
       setSaveState("error");
-      toast.error("Échec de l’enregistrement", {
-        description: `« ${savedTitle.current} » n’a pas été modifiée.`,
-        duration: FAILURE_TOAST_MS,
-        action: { label: "Réessayer", onClick: () => save(field, value) },
-      });
+      notifySaveFailure(`« ${savedTitle.current} » n’a pas été modifiée.`, () => save(field, value));
     });
   }
 

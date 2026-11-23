@@ -20,6 +20,8 @@ export type CardStore = {
   appendCard(input: { title: string; status: CardStatus }): Promise<Card>;
   // Renvoie la carte modifiée, ou null si elle n'existe pas.
   updateCard(id: string, patch: CardPatch): Promise<Card | null>;
+  // Range la colonne : chaque carte prend cet état et la position de son rang.
+  placeCards(status: CardStatus, ids: string[]): Promise<void>;
 };
 
 const CARD_COLUMNS = "id, title, description, status, position";
@@ -68,6 +70,18 @@ export function createCardStore(getClient: () => Promise<Client>): CardStore {
         args: [title ?? null, description ?? null, id],
       });
       return result.rows[0] ? toCard(result.rows[0]) : null;
+    },
+
+    async placeCards(status, ids) {
+      const client = await getClient();
+      // Une seule transaction : la colonne est rangée en entier ou pas du tout.
+      await client.batch(
+        ids.map((id, index) => ({
+          sql: "UPDATE cards SET status = ?, position = ? WHERE id = ?",
+          args: [status, index + 1, id],
+        })),
+        "write",
+      );
     },
   };
 }

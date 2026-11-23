@@ -12,6 +12,14 @@ export type UpdateCardResult =
   | { ok: true; card: Card }
   | { ok: false; error: "title_required" | "invalid_description" | "not_found" };
 
+export type MoveCardResult = { ok: true } | { ok: false; error: "invalid_status" | "invalid_position" | "not_found" };
+
+const statuses: readonly CardStatus[] = ["todo", "doing", "done"];
+
+function isStatus(value: unknown): value is CardStatus {
+  return statuses.includes(value as CardStatus);
+}
+
 // Un titre est un texte non vide une fois rogné ; sinon null.
 function cleanTitle(title: unknown): string | null {
   const trimmed = typeof title === "string" ? title.trim() : "";
@@ -50,6 +58,23 @@ export function createCardService(store: CardStore) {
       }
       const card = await store.updateCard(id, changes);
       return card ? { ok: true, card } : { ok: false, error: "not_found" };
+    },
+
+    // Place la carte au rang `index` de la colonne `status` (rang compté sans
+    // elle, borné à la colonne : au-delà, elle arrive en bas).
+    async moveCard(id: string, status: unknown, index: unknown): Promise<MoveCardResult> {
+      if (!isStatus(status)) return { ok: false, error: "invalid_status" };
+      if (!Number.isInteger(index)) return { ok: false, error: "invalid_position" };
+      const cards = await store.listCards();
+      if (!cards.some((card) => card.id === id)) return { ok: false, error: "not_found" };
+      const column = cards
+        .filter((card) => card.status === status && card.id !== id)
+        .sort((a, b) => a.position - b.position)
+        .map((card) => card.id);
+      const at = Math.min(Math.max(index as number, 0), column.length);
+      column.splice(at, 0, id);
+      await store.placeCards(status, column);
+      return { ok: true };
     },
   };
 }

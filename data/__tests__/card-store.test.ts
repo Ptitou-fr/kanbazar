@@ -118,4 +118,53 @@ describe("cardStore", () => {
 
     await expect(createCardStore(() => db).updateCard("id", { title: "X" })).rejects.toThrow();
   });
+
+  // Lot 3, critère 1 : la carte entre dans une autre colonne à la place voulue
+  test("placeCards range une colonne dans l'ordre donné, y compris une carte venue d'une autre colonne", async () => {
+    const { store } = memoryStore();
+    const a = await store.appendCard({ title: "A", status: "todo" });
+    await store.appendCard({ title: "B", status: "todo" });
+    const c = await store.appendCard({ title: "C", status: "doing" });
+    const d = await store.appendCard({ title: "D", status: "doing" });
+
+    await store.placeCards("doing", [c.id, a.id, d.id]);
+
+    const cards = await store.listCards();
+    expect(cards.map((card) => [card.title, card.status])).toEqual([
+      ["B", "todo"],
+      ["C", "doing"],
+      ["A", "doing"],
+      ["D", "doing"],
+    ]);
+  });
+
+  // Lot 3, critère 3 : nouvelle colonne et position conservées après redémarrage
+  test("une carte déplacée est relue dans sa nouvelle colonne, à la même position, par un nouveau client", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "kanbazar-"));
+    dirs.push(dir);
+    const url = `file:${join(dir, "kanbazar.db")}`;
+
+    const firstDb = openDatabase({ url });
+    const store = createCardStore(() => firstDb);
+    const a = await store.appendCard({ title: "A", status: "todo" });
+    const c = await store.appendCard({ title: "C", status: "done" });
+    await store.placeCards("done", [a.id, c.id]);
+    (await firstDb).close();
+
+    const secondDb = openDatabase({ url });
+    const cards = await createCardStore(() => secondDb).listCards();
+    (await secondDb).close();
+    expect(cards.map((card) => [card.title, card.status, card.position])).toEqual([
+      ["A", "done", 1],
+      ["C", "done", 2],
+    ]);
+  });
+
+  // Lot 3, critère 4 : base injoignable
+  test("placeCards échoue quand la base est injoignable", async () => {
+    const db = openDatabase({ url: "file:/kanbazar-dossier-inexistant/sous-dossier/kanbazar.db" });
+    db.catch(() => {});
+
+    await expect(createCardStore(() => db).placeCards("todo", ["a"])).rejects.toThrow();
+  });
 });
