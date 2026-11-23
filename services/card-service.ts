@@ -28,6 +28,15 @@ function isStatus(value: unknown): value is CardStatus {
   return statuses.includes(value as CardStatus);
 }
 
+// Un identifiant de carte vient d'une Server Action : son type n'est pas
+// garanti. Les identifiants de la base sont des UUID (36 caractères) ; la
+// borne de 64 laisse de la marge sans accepter n'importe quoi.
+const ID_MAX_LENGTH = 64;
+
+function isCardId(id: unknown): id is string {
+  return typeof id === "string" && id.trim() !== "" && id.length <= ID_MAX_LENGTH;
+}
+
 // Compte les caractères tels qu'on les voit : un emoji compte pour un.
 function length(text: string) {
   return Array.from(text).length;
@@ -78,7 +87,8 @@ export function createCardService(store: CardStore) {
 
     // Seuls les champs fournis changent. Le titre reste obligatoire ; la
     // description est facultative (vide une fois rognée = effacée).
-    async updateCard(id: string, patch: { title?: unknown; description?: unknown }): Promise<UpdateCardResult> {
+    async updateCard(id: unknown, patch: { title?: unknown; description?: unknown }): Promise<UpdateCardResult> {
+      if (!isCardId(id)) return { ok: false, error: "not_found" };
       const changes: CardPatch = {};
       if (patch.title !== undefined) {
         const checked = checkTitle(patch.title);
@@ -98,7 +108,8 @@ export function createCardService(store: CardStore) {
 
     // Place la carte au rang `index` de la colonne `status` (rang compté sans
     // elle, borné à la colonne : au-delà, elle arrive en bas).
-    async moveCard(id: string, status: unknown, index: unknown): Promise<MoveCardResult> {
+    async moveCard(id: unknown, status: unknown, index: unknown): Promise<MoveCardResult> {
+      if (!isCardId(id)) return { ok: false, error: "not_found" };
       if (!isStatus(status)) return { ok: false, error: "invalid_status" };
       if (!Number.isInteger(index)) return { ok: false, error: "invalid_position" };
       const cards = await store.listCards();
@@ -114,12 +125,14 @@ export function createCardService(store: CardStore) {
     },
 
     // L'archivage retire la carte du tableau sans la perdre.
-    async archiveCard(id: string): Promise<ArchiveCardResult> {
+    async archiveCard(id: unknown): Promise<ArchiveCardResult> {
+      if (!isCardId(id)) return { ok: false, error: "not_found" };
       return (await store.archiveCard(id)) ? { ok: true } : { ok: false, error: "not_found" };
     },
 
     // Suppression définitive : la confirmation se fait dans l'interface.
-    async deleteCard(id: string): Promise<DeleteCardResult> {
+    async deleteCard(id: unknown): Promise<DeleteCardResult> {
+      if (!isCardId(id)) return { ok: false, error: "not_found" };
       return (await store.deleteCard(id)) ? { ok: true } : { ok: false, error: "not_found" };
     },
   };
