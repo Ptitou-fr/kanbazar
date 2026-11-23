@@ -282,4 +282,16 @@ describe("cardStore", () => {
 
     await expect(createCardStore(() => db).deleteCard("a")).rejects.toThrow();
   });
+
+  // Issue #17 : la description se saisit dès la création
+  test("appendCard enregistre la description donnée à la création, vide par défaut", async () => {
+    const { store } = memoryStore();
+
+    const described = await store.appendCard({ title: "Avec", description: "Détails", status: "todo" });
+    const bare = await store.appendCard({ title: "Sans", status: "todo" });
+
+    expect(described.description).toBe("Détails");
+    expect(bare.description).toBe("");
+    expect((await store.listCards()).map((card) => card.description)).toEqual(["Détails", ""]);
+  });
 });

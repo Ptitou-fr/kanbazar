@@ -3,9 +3,9 @@
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
-import { NEW_CARD_INPUT_ID } from "./columns";
+import { OPEN_NEW_CARD_EVENT } from "./columns";
 
-// Amène le curseur dans le formulaire de création, en bas de « À faire ».
+// Ouvre le formulaire de création, en bas de « À faire », et y place le curseur.
 export function NewCardButton({ label = "Nouvelle carte", className }: { label?: string; className?: string }) {
   const { setOpenMobile } = useSidebar();
   return (
@@ -14,7 +14,7 @@ export function NewCardButton({ label = "Nouvelle carte", className }: { label?:
       size="lg"
       onClick={() => {
         setOpenMobile(false);
-        document.getElementById(NEW_CARD_INPUT_ID)?.focus();
+        window.dispatchEvent(new Event(OPEN_NEW_CARD_EVENT));
       }}
     >
       <Plus aria-hidden="true" />

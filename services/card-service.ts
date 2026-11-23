@@ -6,7 +6,7 @@ export type { Card, CardStatus };
 
 export type Board = Record<CardStatus, Card[]>;
 
-export type CreateCardResult = { ok: true; card: Card } | { ok: false; error: "title_required" };
+export type CreateCardResult = { ok: true; card: Card } | { ok: false; error: "title_required" | "invalid_description" };
 
 export type UpdateCardResult =
   | { ok: true; card: Card }
@@ -39,11 +39,13 @@ export function createCardService(store: CardStore) {
       return board;
     },
 
-    // Une carte a un titre non vide ; elle naît en bas de « À faire ».
-    async createCard(title: unknown): Promise<CreateCardResult> {
+    // Une carte a un titre non vide et une description facultative ; elle
+    // naît en bas de « À faire ».
+    async createCard(title: unknown, description?: unknown): Promise<CreateCardResult> {
       const trimmed = cleanTitle(title);
       if (!trimmed) return { ok: false, error: "title_required" };
-      const card = await store.appendCard({ title: trimmed, status: "todo" });
+      if (description != null && typeof description !== "string") return { ok: false, error: "invalid_description" };
+      const card = await store.appendCard({ title: trimmed, description: description?.trim() ?? "", status: "todo" });
       return { ok: true, card };
     },
 
