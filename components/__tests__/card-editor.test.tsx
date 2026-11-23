@@ -115,4 +115,25 @@ describe("CardEditor", () => {
     await vi.waitFor(() => expect(updateCardAction).toHaveBeenCalledWith("a", { title: "Fermé" }));
     expect(onClose).toHaveBeenCalled();
   });
+
+  // Issue #21 : tailles limitées dans le panneau, refus du service affiché sans toast d'échec
+  test("limite la saisie à 200 caractères pour le titre et 10 000 pour la description", () => {
+    renderEditor();
+
+    expect((screen.getByLabelText("Titre") as HTMLInputElement).maxLength).toBe(200);
+    expect((screen.getByLabelText("Description") as HTMLTextAreaElement).maxLength).toBe(10_000);
+  });
+
+  test.each([
+    ["Titre", "title_too_long", "Le titre ne doit pas dépasser 200 caractères."],
+    ["Description", "description_too_long", "La description ne doit pas dépasser 10 000 caractères."],
+  ])("affiche le refus du service pour le champ %s, sans toast d'échec", async (label, error, message) => {
+    updateCardAction.mockResolvedValue({ ok: false, error });
+    renderEditor();
+
+    edit(label, "Trop long");
+
+    expect(await screen.findByText(message)).toBeDefined();
+    expect(toastError).not.toHaveBeenCalled();
+  });
 });

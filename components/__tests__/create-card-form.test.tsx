@@ -128,4 +128,29 @@ describe("CreateCardForm", () => {
     expect([...row.querySelectorAll("button")].map((button) => button.textContent)).toEqual(["Annuler", "Ajouter"]);
     expect(row.className).toContain("justify-end");
   });
+
+  // Issue #21 : tailles limitées dans l'interface, refus du service affiché
+  test("limite la saisie à 200 caractères pour le titre et 10 000 pour la description", () => {
+    render(<CreateCardForm />);
+    open();
+
+    expect(titleField().maxLength).toBe(200);
+    expect(descriptionField().maxLength).toBe(10_000);
+  });
+
+  test.each([
+    ["title_too_long", "Le titre ne doit pas dépasser 200 caractères."],
+    ["description_too_long", "La description ne doit pas dépasser 10 000 caractères."],
+  ])("affiche le refus %s du service et garde la saisie", async (error, message) => {
+    createCardAction.mockResolvedValue({ ok: false, error });
+    render(<CreateCardForm />);
+    open();
+
+    fill("Titre", "Description");
+    submit();
+
+    expect(await screen.findByText(message)).toBeDefined();
+    expect(titleField().value).toBe("Titre");
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
 });

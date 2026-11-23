@@ -10,6 +10,7 @@ import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/she
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { Card } from "@/services/card-service";
+import { DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH, tooLongMessages } from "./columns";
 import { notifySaveFailure } from "./save-failure";
 
 type Field = "title" | "description";
@@ -31,7 +32,8 @@ type CardEditorProps = { card: Card; onClose: () => void; actions?: ReactNode };
 // « Enregistrer ».
 export function CardEditor({ card, onClose, actions }: CardEditorProps) {
   const [values, setValues] = useState<Values>({ title: card.title, description: card.description });
-  const [titleError, setTitleError] = useState(false);
+  const [titleError, setTitleError] = useState<"title_required" | "title_too_long" | null>(null);
+  const [descriptionError, setDescriptionError] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [failed, setFailed] = useState<ReadonlySet<Field>>(new Set());
   // Dernière valeur envoyée par champ : évite de renvoyer deux fois la même.
@@ -70,8 +72,13 @@ export function CardEditor({ card, onClose, actions }: CardEditorProps) {
         return;
       }
       sent.current[field] = previous;
-      if (result.error === "title_required") {
-        setTitleError(true);
+      // Refus du service sur le contenu : message sous le champ, pas d'échec d'enregistrement.
+      if (result.error === "title_required" || result.error === "title_too_long") {
+        setTitleError(result.error);
+        return;
+      }
+      if (result.error === "description_too_long") {
+        setDescriptionError(true);
         return;
       }
       markFailed(field, true);
@@ -81,7 +88,7 @@ export function CardEditor({ card, onClose, actions }: CardEditorProps) {
 
   function commit(field: Field, value: string, { quiet = false } = {}) {
     if (field === "title" && !value.trim()) {
-      if (!quiet) setTitleError(true);
+      if (!quiet) setTitleError("title_required");
       return;
     }
     if (value.trim() === sent.current[field].trim()) return;
@@ -136,19 +143,20 @@ export function CardEditor({ card, onClose, actions }: CardEditorProps) {
             autoComplete="off"
             onChange={(event) => {
               setValues((current) => ({ ...current, title: event.target.value }));
-              if (titleError && event.target.value.trim()) setTitleError(false);
+              if (titleError && event.target.value.trim()) setTitleError(null);
             }}
             onBlur={(event) => commit("title", event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") commit("title", event.currentTarget.value);
             }}
-            aria-invalid={titleError || undefined}
+            maxLength={TITLE_MAX_LENGTH}
+            aria-invalid={titleError ? true : undefined}
             aria-describedby={titleError ? "edit-title-error" : undefined}
           />
           {titleError && (
             <p id="edit-title-error" className="flex items-center gap-1.5 text-xs text-destructive">
               <CircleAlert aria-hidden="true" className="size-3.5" />
-              Le titre est obligatoire.
+              {titleError === "title_too_long" ? tooLongMessages.title_too_long : "Le titre est obligatoire."}
             </p>
           )}
         </div>
@@ -162,14 +170,24 @@ export function CardEditor({ card, onClose, actions }: CardEditorProps) {
             rows={6}
             value={values.description}
             className="min-h-33 resize-y [field-sizing:fixed]"
+            maxLength={DESCRIPTION_MAX_LENGTH}
+            aria-invalid={descriptionError || undefined}
+            aria-describedby={descriptionError ? "edit-description-error" : undefined}
             onChange={(event) => {
               const value = event.target.value;
               setValues((current) => ({ ...current, description: value }));
+              setDescriptionError(false);
               clearTimeout(timer.current);
               timer.current = setTimeout(() => commit("description", value), DESCRIPTION_DELAY_MS);
             }}
             onBlur={(event) => commitDescriptionNow(event.target.value)}
           />
+          {descriptionError && (
+            <p id="edit-description-error" className="flex items-center gap-1.5 text-xs text-destructive">
+              <CircleAlert aria-hidden="true" className="size-3.5" />
+              {tooLongMessages.description_too_long}
+            </p>
+          )}
         </div>
 
         <p className="text-[12.5px] text-muted-foreground">Les modifications s’enregistrent automatiquement.</p>
