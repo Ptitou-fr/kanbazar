@@ -6,11 +6,15 @@ export type { Card, CardStatus };
 
 export type Board = Record<CardStatus, Card[]>;
 
-export type CreateCardResult = { ok: true; card: Card } | { ok: false; error: "title_required" | "invalid_description" };
+// Longueurs maximales, en caractères, une fois les espaces autour retirés.
+export const TITLE_MAX_LENGTH = 200;
+export const DESCRIPTION_MAX_LENGTH = 10_000;
 
-export type UpdateCardResult =
-  | { ok: true; card: Card }
-  | { ok: false; error: "title_required" | "invalid_description" | "not_found" };
+type ContentError = "title_required" | "title_too_long" | "invalid_description" | "description_too_long";
+
+export type CreateCardResult = { ok: true; card: Card } | { ok: false; error: ContentError };
+
+export type UpdateCardResult = { ok: true; card: Card } | { ok: false; error: ContentError | "not_found" };
 
 export type ArchiveCardResult = { ok: true } | { ok: false; error: "not_found" };
 
@@ -24,10 +28,28 @@ function isStatus(value: unknown): value is CardStatus {
   return statuses.includes(value as CardStatus);
 }
 
-// Un titre est un texte non vide une fois rogné ; sinon null.
-function cleanTitle(title: unknown): string | null {
+// Compte les caractères tels qu'on les voit : un emoji compte pour un.
+function length(text: string) {
+  return Array.from(text).length;
+}
+
+// Un titre est un texte non vide une fois rogné, d'au plus TITLE_MAX_LENGTH caractères.
+function checkTitle(title: unknown): { title: string } | { error: "title_required" | "title_too_long" } {
   const trimmed = typeof title === "string" ? title.trim() : "";
-  return trimmed || null;
+  if (!trimmed) return { error: "title_required" };
+  if (length(trimmed) > TITLE_MAX_LENGTH) return { error: "title_too_long" };
+  return { title: trimmed };
+}
+
+// Une description est un texte facultatif (absent = vide), d'au plus DESCRIPTION_MAX_LENGTH caractères.
+function checkDescription(
+  description: unknown,
+): { description: string } | { error: "invalid_description" | "description_too_long" } {
+  if (description == null) return { description: "" };
+  if (typeof description !== "string") return { error: "invalid_description" };
+  const trimmed = description.trim();
+  if (length(trimmed) > DESCRIPTION_MAX_LENGTH) return { error: "description_too_long" };
+  return { description: trimmed };
 }
 
 export function createCardService(store: CardStore) {
@@ -42,10 +64,15 @@ export function createCardService(store: CardStore) {
     // Une carte a un titre non vide et une description facultative ; elle
     // naît en bas de « À faire ».
     async createCard(title: unknown, description?: unknown): Promise<CreateCardResult> {
-      const trimmed = cleanTitle(title);
-      if (!trimmed) return { ok: false, error: "title_required" };
-      if (description != null && typeof description !== "string") return { ok: false, error: "invalid_description" };
-      const card = await store.appendCard({ title: trimmed, description: description?.trim() ?? "", status: "todo" });
+      const checkedTitle = checkTitle(title);
+      if ("error" in checkedTitle) return { ok: false, error: checkedTitle.error };
+      const checkedDescription = checkDescription(description);
+      if ("error" in checkedDescription) return { ok: false, error: checkedDescription.error };
+      const card = await store.appendCard({
+        title: checkedTitle.title,
+        description: checkedDescription.description,
+        status: "todo",
+      });
       return { ok: true, card };
     },
 
@@ -54,13 +81,16 @@ export function createCardService(store: CardStore) {
     async updateCard(id: string, patch: { title?: unknown; description?: unknown }): Promise<UpdateCardResult> {
       const changes: CardPatch = {};
       if (patch.title !== undefined) {
-        const title = cleanTitle(patch.title);
-        if (!title) return { ok: false, error: "title_required" };
-        changes.title = title;
+        const checked = checkTitle(patch.title);
+        if ("error" in checked) return { ok: false, error: checked.error };
+        changes.title = checked.title;
       }
       if (patch.description !== undefined) {
+        // null n'efface pas la description par erreur : seul un texte est accepté ici.
         if (typeof patch.description !== "string") return { ok: false, error: "invalid_description" };
-        changes.description = patch.description.trim();
+        const checked = checkDescription(patch.description);
+        if ("error" in checked) return { ok: false, error: checked.error };
+        changes.description = checked.description;
       }
       const card = await store.updateCard(id, changes);
       return card ? { ok: true, card } : { ok: false, error: "not_found" };

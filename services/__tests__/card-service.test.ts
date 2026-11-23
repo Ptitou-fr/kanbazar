@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import type { Card, CardStore } from "@/data/card-store";
-import { createCardService } from "@/services/card-service";
+import { createCardService, DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from "@/services/card-service";
 
 function card(fields: Partial<Card> & Pick<Card, "id">): Card {
   return { title: fields.id.toUpperCase(), description: "", status: "todo", position: 1, ...fields };
@@ -319,5 +319,65 @@ describe("cardService.deleteCard", () => {
     store.deleteCard.mockRejectedValueOnce(new Error("base injoignable"));
 
     await expect(createCardService(store).deleteCard("a")).rejects.toThrow("base injoignable");
+  });
+});
+
+// Issue #21 : titre limité à 200 caractères, description à 10 000
+describe("limites de taille", () => {
+  const existing = card({ id: "a" });
+
+  test("les limites sont de 200 caractères pour le titre et 10 000 pour la description", () => {
+    expect(TITLE_MAX_LENGTH).toBe(200);
+    expect(DESCRIPTION_MAX_LENGTH).toBe(10_000);
+  });
+
+  test("accepte un titre de 200 caractères et une description de 10 000", async () => {
+    const store = fakeStore([existing]);
+    const service = createCardService(store);
+
+    await expect(service.createCard("t".repeat(200), "d".repeat(10_000))).resolves.toMatchObject({ ok: true });
+    await expect(service.updateCard("a", { title: "t".repeat(200) })).resolves.toMatchObject({ ok: true });
+    await expect(service.updateCard("a", { description: "d".repeat(10_000) })).resolves.toMatchObject({ ok: true });
+  });
+
+  test("compte les caractères après avoir retiré les espaces autour", async () => {
+    const store = fakeStore();
+
+    await expect(createCardService(store).createCard(`  ${"t".repeat(200)}  `)).resolves.toMatchObject({ ok: true });
+  });
+
+  test("compte un emoji comme un seul caractère", async () => {
+    const store = fakeStore();
+
+    await expect(createCardService(store).createCard("🧩".repeat(200))).resolves.toMatchObject({ ok: true });
+  });
+
+  test("refuse à la création un titre de 201 caractères, sans rien enregistrer", async () => {
+    const store = fakeStore();
+
+    await expect(createCardService(store).createCard("t".repeat(201))).resolves.toEqual({ ok: false, error: "title_too_long" });
+    expect(store.appendCard).not.toHaveBeenCalled();
+  });
+
+  test("refuse à la création une description de 10 001 caractères, sans rien enregistrer", async () => {
+    const store = fakeStore();
+
+    await expect(createCardService(store).createCard("Titre", "d".repeat(10_001))).resolves.toEqual({
+      ok: false,
+      error: "description_too_long",
+    });
+    expect(store.appendCard).not.toHaveBeenCalled();
+  });
+
+  test("refuse à la modification un titre ou une description trop longs, sans rien enregistrer", async () => {
+    const store = fakeStore([existing]);
+    const service = createCardService(store);
+
+    await expect(service.updateCard("a", { title: "t".repeat(201) })).resolves.toEqual({ ok: false, error: "title_too_long" });
+    await expect(service.updateCard("a", { description: "d".repeat(10_001) })).resolves.toEqual({
+      ok: false,
+      error: "description_too_long",
+    });
+    expect(store.updateCard).not.toHaveBeenCalled();
   });
 });

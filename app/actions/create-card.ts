@@ -1,9 +1,9 @@
 "use server";
 
 import { refresh } from "next/cache";
-import { cardService } from "@/services/card-service";
+import { cardService, type CreateCardResult } from "@/services/card-service";
 
-export type CreateCardState = { ok: true } | { ok: false; error: "title_required" | "invalid_description" | "save_failed" };
+export type CreateCardState = { ok: true } | { ok: false; error: Exclude<CreateCardResult, { ok: true }>["error"] | "save_failed" };
 
 export async function createCardAction(formData: FormData): Promise<CreateCardState> {
   let result;

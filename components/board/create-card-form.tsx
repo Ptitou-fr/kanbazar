@@ -6,9 +6,9 @@ import { createCardAction } from "@/app/actions/create-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { NEW_CARD_INPUT_ID, OPEN_NEW_CARD_EVENT } from "./columns";
+import { DESCRIPTION_MAX_LENGTH, NEW_CARD_INPUT_ID, OPEN_NEW_CARD_EVENT, TITLE_MAX_LENGTH, tooLongMessages } from "./columns";
 
-type FormError = "title_required" | "save_failed" | null;
+type FormError = "title_required" | "title_too_long" | "description_too_long" | "save_failed" | null;
 
 // Formulaire de création, replié derrière « Ajouter une carte » en bas de
 // « À faire ». Une fois ouvert, il reste ouvert après chaque ajout pour
@@ -75,7 +75,8 @@ export function CreateCardForm() {
         setDescription("");
         titleRef.current?.focus();
       } else {
-        setError(result.error === "title_required" ? "title_required" : "save_failed");
+        const known = ["title_required", "title_too_long", "description_too_long"] as const;
+        setError(known.find((error) => error === result.error) ?? "save_failed");
       }
     });
   }
@@ -95,7 +96,8 @@ export function CreateCardForm() {
     );
   }
 
-  const describedBy = error === "title_required" ? "new-card-error" : undefined;
+  const titleError = error === "title_required" || error === "title_too_long";
+  const describedBy = titleError ? "new-card-error" : undefined;
 
   return (
     <form
@@ -119,15 +121,16 @@ export function CreateCardForm() {
         value={title}
         onChange={(event) => {
           setTitle(event.target.value);
-          if (error === "title_required") setError(null);
+          if (titleError) setError(null);
         }}
-        aria-invalid={error === "title_required" || undefined}
+        maxLength={TITLE_MAX_LENGTH}
+        aria-invalid={titleError || undefined}
         aria-describedby={describedBy}
       />
-      {error === "title_required" && (
+      {titleError && (
         <p id="new-card-error" className="flex items-center gap-1.5 text-xs text-destructive">
           <CircleAlert aria-hidden="true" className="size-3.5" />
-          Le titre est obligatoire.
+          {error === "title_too_long" ? tooLongMessages.title_too_long : "Le titre est obligatoire."}
         </p>
       )}
       <label htmlFor="new-card-description" className="sr-only">
@@ -138,9 +141,21 @@ export function CreateCardForm() {
         name="description"
         placeholder="Description (facultative)"
         rows={3}
+        maxLength={DESCRIPTION_MAX_LENGTH}
         value={description}
-        onChange={(event) => setDescription(event.target.value)}
+        onChange={(event) => {
+          setDescription(event.target.value);
+          if (error === "description_too_long") setError(null);
+        }}
+        aria-invalid={error === "description_too_long" || undefined}
+        aria-describedby={error === "description_too_long" ? "new-card-description-error" : undefined}
       />
+      {error === "description_too_long" && (
+        <p id="new-card-description-error" className="flex items-center gap-1.5 text-xs text-destructive">
+          <CircleAlert aria-hidden="true" className="size-3.5" />
+          {tooLongMessages.description_too_long}
+        </p>
+      )}
       {error === "save_failed" && (
         <p role="alert" className="flex items-start gap-1.5 text-xs text-destructive">
           <CircleAlert aria-hidden="true" className="mt-px size-3.5" />
