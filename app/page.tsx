@@ -40,7 +40,9 @@ async function BoardPage() {
           <div id="board" className="flex flex-col gap-5 p-4 md:px-8 md:pt-7 md:pb-8">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <h1 className="text-[22px] font-semibold tracking-tight md:text-[28px]">Tableau</h1>
+                <h1 className="text-[22px] font-semibold tracking-tight text-balance md:text-[28px]">
+                  Le petit outil kanban qui met de l’ordre dans ton bazar
+                </h1>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {total} {total > 1 ? "cartes actives" : "carte active"}
                 </p>
