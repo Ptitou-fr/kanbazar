@@ -49,8 +49,9 @@ Vercel déploie `main` en production, et chaque autre branche poussée en prévi
 
 ### Identifiants en local
 
-`.env.production.local` (ignoré par git) contient l'URL et le jeton de la base
-de production. `pnpm dev` ne le lit pas et garde `.data/kanbazar.db` ;
+`.env.example` liste les variables attendues, sans valeur.
+`.env.production.local` (ignoré par git, à créer depuis ce modèle) contient
+l'URL et le jeton de la base de production. `pnpm dev` ne le lit pas et garde `.data/kanbazar.db` ;
 `pnpm build` puis `pnpm start` le lisent.
 
 ### Cartes de dev
