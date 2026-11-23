@@ -118,4 +118,14 @@ describe("CreateCardForm", () => {
     expect(titleField().value).toBe("Brancher Turso");
     expect(descriptionField().value).toBe("Détails");
   });
+
+  // Issue #19 : « Annuler » puis « Ajouter » à l'extrême droite, comme d'habitude
+  test("place « Annuler » avant « Ajouter », en fin de rangée à droite", () => {
+    render(<CreateCardForm />);
+    open();
+
+    const row = screen.getByRole("button", { name: "Ajouter" }).parentElement!;
+    expect([...row.querySelectorAll("button")].map((button) => button.textContent)).toEqual(["Annuler", "Ajouter"]);
+    expect(row.className).toContain("justify-end");
+  });
 });

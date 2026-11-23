@@ -147,12 +147,13 @@ export function CreateCardForm() {
           Échec de l’enregistrement : la carte n’a pas été ajoutée. Réessayez.
         </p>
       )}
-      <div className="flex gap-2">
-        <Button type="submit" size="sm" disabled={pending}>
-          Ajouter
-        </Button>
+      {/* Disposition habituelle : « Annuler », puis l'action principale à l'extrême droite. */}
+      <div className="flex justify-end gap-2">
         <Button type="button" variant="ghost" size="sm" onClick={close}>
           Annuler
+        </Button>
+        <Button type="submit" size="sm" disabled={pending}>
+          Ajouter
         </Button>
       </div>
     </form>
