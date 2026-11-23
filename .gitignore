@@ -44,3 +44,6 @@ next-env.d.ts
 
 # base locale (libsql)
 /.data/
+
+# Claude Code : permissions locales, propres à chaque poste
+.claude/settings.local.json
