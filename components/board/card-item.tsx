@@ -15,6 +15,9 @@ import { cn } from "@/lib/utils";
 import type { Card as CardData, CardStatus } from "@/services/card-service";
 import { columns } from "./columns";
 
+// Au doigt, chaque entrée du menu fait au moins 44 px de haut ; à la souris, la taille shadcn.
+const TOUCH_TARGET = "any-pointer-coarse:min-h-11";
+
 type CardItemProps = {
   card: CardData;
   grabbed: boolean;
@@ -85,7 +88,7 @@ export function CardItem({ card, grabbed, onOpen, onArchive, onDelete, onMoveTo,
               {columns
                 .filter((column) => column.status !== card.status)
                 .map((column) => (
-                  <DropdownMenuItem key={column.status} onClick={() => onMoveTo(column.status)}>
+                  <DropdownMenuItem key={column.status} className={TOUCH_TARGET} onClick={() => onMoveTo(column.status)}>
                     <span aria-hidden="true" className={`size-2 shrink-0 rounded-full ${column.dotClass}`} />
                     {column.title}
                   </DropdownMenuItem>
@@ -93,11 +96,11 @@ export function CardItem({ card, grabbed, onOpen, onArchive, onDelete, onMoveTo,
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
           </div>
-          <DropdownMenuItem onClick={onArchive}>
+          <DropdownMenuItem className={TOUCH_TARGET} onClick={onArchive}>
             <Archive aria-hidden="true" />
             Archiver
           </DropdownMenuItem>
-          <DropdownMenuItem variant="destructive" onClick={onDelete}>
+          <DropdownMenuItem variant="destructive" className={TOUCH_TARGET} onClick={onDelete}>
             <Trash2 aria-hidden="true" />
             Supprimer
           </DropdownMenuItem>
