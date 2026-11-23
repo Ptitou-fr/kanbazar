@@ -32,6 +32,20 @@ Concerne `app/` (pages, layouts, Server Actions, Route Handlers) et
 - Afficher l'attente et l'erreur : un enregistrement qui échoue est signalé
   et n'est jamais présenté comme enregistré.
 
+## Référence visuelle
+
+- Le canevas [Kanbazar — maquette](https://claude.ai/artifact/1BSeZtNKtCjuhUqubGnsBD)
+  est la référence des écrans. `lots.md` indique, pour chaque lot, les
+  artboards à reproduire.
+- Avant de coder un écran, lire ses artboards (`Artifact read`, chemin
+  `project/<Nom>.dc.html`) et la feuille de style de la maquette :
+  disposition, textes, états, comportement clavier.
+- Les traduire en composants de `components/ui/` et en tokens, sans
+  recopier le HTML ni le CSS de la maquette.
+- Un écart volontaire avec le canevas est signalé dans la PR et, s'il est
+  validé, reporté dans le canevas. Un changement de design passe d'abord par
+  le canevas.
+
 ## Comment vérifier
 
 ```bash
@@ -52,3 +66,7 @@ Ne doit rien afficher : aucun élément interactif brut hors `components/ui/`.
 ```bash
 pnpm test
 ```
+
+Comparer l'écran livré aux artboards du lot, en clair, en sombre et à 390 px
+de large, par captures dans le navigateur intégré : même disposition, mêmes
+textes, mêmes états.
