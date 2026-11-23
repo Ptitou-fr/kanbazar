@@ -381,3 +381,46 @@ describe("limites de taille", () => {
     expect(store.updateCard).not.toHaveBeenCalled();
   });
 });
+
+// Issue #22 : l'identifiant reçu d'une Server Action est contrôlé par le service
+describe("contrôle de l'identifiant de carte", () => {
+  const invalidIds: [unknown][] = [[42], [null], [undefined], [""], ["   "], [{ id: "a" }], ["x".repeat(65)]];
+
+  test.each(invalidIds)("updateCard refuse l'identifiant %j sans appeler la couche données", async (id) => {
+    const store = fakeStore([card({ id: "a" })]);
+
+    await expect(createCardService(store).updateCard(id, { title: "T" })).resolves.toEqual({ ok: false, error: "not_found" });
+    expect(store.updateCard).not.toHaveBeenCalled();
+  });
+
+  test.each(invalidIds)("moveCard refuse l'identifiant %j sans appeler la couche données", async (id) => {
+    const store = fakeStore([card({ id: "a" })]);
+
+    await expect(createCardService(store).moveCard(id, "doing", 0)).resolves.toEqual({ ok: false, error: "not_found" });
+    expect(store.listCards).not.toHaveBeenCalled();
+    expect(store.placeCards).not.toHaveBeenCalled();
+  });
+
+  test.each(invalidIds)("archiveCard refuse l'identifiant %j sans appeler la couche données", async (id) => {
+    const store = fakeStore([card({ id: "a" })]);
+
+    await expect(createCardService(store).archiveCard(id)).resolves.toEqual({ ok: false, error: "not_found" });
+    expect(store.archiveCard).not.toHaveBeenCalled();
+  });
+
+  test.each(invalidIds)("deleteCard refuse l'identifiant %j sans appeler la couche données", async (id) => {
+    const store = fakeStore([card({ id: "a" })]);
+
+    await expect(createCardService(store).deleteCard(id)).resolves.toEqual({ ok: false, error: "not_found" });
+    expect(store.deleteCard).not.toHaveBeenCalled();
+  });
+
+  test("accepte un identifiant au format de ceux de la base", async () => {
+    const id = "3f2b8c1e-9d4a-4f6b-8e2c-1a7d5b9c0e34";
+    const store = fakeStore([card({ id })]);
+
+    await expect(createCardService(store).archiveCard(id)).resolves.toEqual({ ok: true });
+    expect(store.archiveCard).toHaveBeenCalledWith(id);
+  });
+});
+
