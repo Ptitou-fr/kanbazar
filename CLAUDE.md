@@ -19,7 +19,7 @@ pnpm dev      # next dev
 pnpm build    # build de production, doit passer (critère d'acceptation)
 pnpm lint     # eslint, config flat (next core-web-vitals + typescript)
 pnpm test     # vitest run, une seule exécution
-pnpm test services/__tests__/example-service.test.ts   # un seul fichier
+pnpm test services/__tests__/card-service.test.ts   # un seul fichier
 ```
 
 Tests dans un dossier `__tests__/` à l'intérieur de leur couche
@@ -39,7 +39,6 @@ Server Components async : tester des composants synchrones.
 - `services/` et `data/` commencent par `import "server-only"`.
 - `eslint.config.mjs` fait appliquer ces frontières (`no-restricted-imports`) :
   `pnpm lint` échoue sur un import interdit entre couches.
-- `*/example-*` sont des exemples vides, à remplacer par le vrai code.
 - Règles détaillées par couche, chargées quand on touche ses fichiers :
   `.claude/rules/presentation.md`, `service.md`, `donnees.md`.
 
@@ -53,7 +52,10 @@ Server Components async : tester des composants synchrones.
 - Tailwind v4 passe par une règle de loader Turbopack sur `*.css`
   (`@tailwindcss/turbopack`), pas par PostCSS. Les jetons de thème sont dans
   `app/globals.css`, via `@theme inline`.
-- Imposés mais pas encore installés : shadcn/ui, SQLite via Turso.
+- Base : SQLite via Turso (`@libsql/client`, dans `data/` seulement).
+  `TURSO_DATABASE_URL` et `TURSO_AUTH_TOKEN` ; sans URL hors production,
+  base locale `.data/kanbazar.db` (ignorée par git), schéma migré à
+  l'ouverture (`PRAGMA user_version`, `data/db.ts`).
 - Alias de chemin : `@/*` → racine du dépôt.
 - `.env*` est ignoré par git ; les identifiants Turso vont là et dans les
   variables d'environnement Vercel.
