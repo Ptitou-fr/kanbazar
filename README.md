@@ -29,8 +29,36 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Déployer
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Production sur Vercel (projet `kanbazar`, équipe Ptitou), base SQLite sur Turso.
+Vercel déploie `main` en production, et chaque autre branche poussée en prévisualisation.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Région** : fonctions en `pdx1` (Portland, `vercel.json`), base Turso en
+  `aws-us-west-2` (Oregon), à côté.
+- **Base** : une seule base Turso `kanbazar`, partagée par la production et les
+  prévisualisations. Une prévisualisation modifie donc les vraies cartes.
+  Le schéma se migre tout seul au premier accès (`PRAGMA user_version`, `data/db.ts`).
+- **Variables** : `TURSO_DATABASE_URL` et `TURSO_AUTH_TOKEN`, type Sensitive,
+  cibles Production et Preview. Sans elles, l'app refuse de démarrer en production.
+- **Accès** : Vercel Authentication sur **All Deployments** (Settings ›
+  Deployment Protection). Toutes les URL, domaine de production compris,
+  demandent un compte Vercel ayant accès à l'équipe, pour les pages comme pour
+  les Server Actions. Ne pas repasser en « Standard » : elle laisse les
+  domaines personnalisés publics.
+
+### Identifiants en local
+
+`.env.production.local` (ignoré par git) contient l'URL et le jeton de la base
+de production. `pnpm dev` ne le lit pas et garde `.data/kanbazar.db` ;
+`pnpm build` puis `pnpm start` le lisent.
+
+### Cartes de dev
+
+```bash
+pnpm seed:dev-cards
+```
+
+Crée une douzaine de cartes de développement sur la base de
+`.env.production.local`, en passant par le service. Refuse de tourner si le
+tableau contient déjà des cartes.
