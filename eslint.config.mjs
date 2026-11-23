@@ -2,14 +2,25 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
-// Pilotes et éléments propres au moteur de stockage : couche données uniquement.
+// Pilotes de la base (SQLite via Turso) : couche données uniquement.
+// Un ORM choisi plus tard s'ajoute ici.
 const driverImports = {
-  group: ["@libsql/*", "@tursodatabase/*"],
+  group: ["libsql", "libsql/*", "@libsql/*", "@tursodatabase/*"],
   message: "Seule la couche données (data/) accède au pilote de la base.",
 };
 
 // Frontières des couches (INTENT.md) : présentation → service → données.
+// Une config plus loin remplace la règle d'une config plus haut : chaque bloc
+// de couche hors data/ répète donc driverImports.
 const layerBoundaries = [
+  {
+    // Tout le dépôt sauf data/ : pages, composants, services, lib/, configs…
+    files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    ignores: ["data/**"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [driverImports] }],
+    },
+  },
   {
     files: ["app/**", "components/**"],
     rules: {

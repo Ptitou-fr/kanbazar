@@ -40,6 +40,8 @@ Server Components async : tester des composants synchrones.
 - `eslint.config.mjs` fait appliquer ces frontières (`no-restricted-imports`) :
   `pnpm lint` échoue sur un import interdit entre couches.
 - `*/example-*` sont des exemples vides, à remplacer par le vrai code.
+- Règles détaillées par couche, chargées quand on touche ses fichiers :
+  `.claude/rules/presentation.md`, `service.md`, `donnees.md`.
 
 ## Particularités de la stack
 
