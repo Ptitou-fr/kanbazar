@@ -1,0 +1,9 @@
+import type { CardStatus } from "@/services/card-service";
+
+export const columns: { status: CardStatus; title: string; dotClass: string }[] = [
+  { status: "todo", title: "À faire", dotClass: "bg-muted-foreground" },
+  { status: "doing", title: "En cours", dotClass: "bg-accent-foreground" },
+  { status: "done", title: "Terminé", dotClass: "bg-primary" },
+];
+
+export const NEW_CARD_INPUT_ID = "new-card-title";

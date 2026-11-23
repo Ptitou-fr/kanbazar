@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kanbazar — options de design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* Page hôte : neutre, suit le thème du système. Les panneaux, eux, sont figés en clair ou sombre. */
+:root { --page-bg: #f4f4f5; --page-fg: #18181b; --page-muted: #52525b; --page-line: #e4e4e7; color-scheme: light dark; }
+@media (prefers-color-scheme: dark) { :root { --page-bg: #0c0c0e; --page-fg: #f4f4f5; --page-muted: #a1a1aa; --page-line: #27272a; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page-bg); color: var(--page-fg); font: 15px/1.5 system-ui, -apple-system, sans-serif; }
+.page-head { max-width: 1480px; margin: 0 auto; padding: 40px 24px 8px; }
+.page-head h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: -0.02em; }
+.page-head p { margin: 0; color: var(--page-muted); max-width: 70ch; }
+.grid { max-width: 1480px; margin: 0 auto; padding: 24px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start; }
+@media (max-width: 1100px) { .grid { grid-template-columns: 1fr; max-width: 560px; } }
+@media (max-width: 480px) { .grid, .page-head { padding-left: 16px; padding-right: 16px; } }
+.column { display: grid; gap: 16px; min-width: 0; }
+.col-head { padding: 4px 2px 0; }
+.col-num { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--page-muted); }
+.col-title { margin: 2px 0 4px; font-size: 30px; letter-spacing: -0.02em; line-height: 1.1; }
+.col-pitch { margin: 0 0 4px; }
+.col-specs { margin: 0; font-size: 13px; color: var(--page-muted); }
+
+.ds-ardoise { --font-sans: 'Inter', system-ui, sans-serif; --font-display: 'Inter', system-ui, sans-serif; --font-mono: 'JetBrains Mono', ui-monospace, monospace; --radius: 0.5rem; --btn-radius: var(--radius); --display-weight: 650; --display-tracking: -0.02em; }
+.ds-ardoise.mode-light {
+  --background: oklch(0.985 0.002 260);
+  --foreground: oklch(0.21 0.02 265);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.02 265);
+  --muted: oklch(0.955 0.005 260);
+  --muted-foreground: oklch(0.50 0.02 262);
+  --primary: oklch(0.51 0.21 275);
+  --primary-foreground: oklch(0.985 0.01 275);
+  --secondary: oklch(0.945 0.01 265);
+  --secondary-foreground: oklch(0.28 0.03 268);
+  --accent: oklch(0.935 0.03 275);
+  --accent-foreground: oklch(0.38 0.13 275);
+  --destructive: oklch(0.55 0.21 25);
+  --destructive-foreground: oklch(0.985 0.01 25);
+  --border: oklch(0.91 0.006 260);
+  --input: oklch(0.66 0.012 260);
+  --ring: oklch(0.51 0.21 275);
+  color-scheme: light;
+}
+.ds-ardoise.mode-dark {
+  --background: oklch(0.16 0.012 265);
+  --foreground: oklch(0.96 0.005 260);
+  --card: oklch(0.2 0.014 265);
+  --card-foreground: oklch(0.96 0.005 260);
+  --muted: oklch(0.25 0.014 265);
+  --muted-foreground: oklch(0.71 0.015 262);
+  --primary: oklch(0.68 0.16 275);
+  --primary-foreground: oklch(0.16 0.03 275);
+  --secondary: oklch(0.27 0.016 265);
+  --secondary-foreground: oklch(0.93 0.008 260);
+  --accent: oklch(0.30 0.05 275);
+  --accent-foreground: oklch(0.88 0.06 275);
+  --destructive: oklch(0.66 0.19 25);
+  --destructive-foreground: oklch(0.16 0.02 25);
+  --border: oklch(0.29 0.014 265);
+  --input: oklch(0.50 0.016 265);
+  --ring: oklch(0.68 0.16 275);
+  color-scheme: dark;
+}
+.ds-papier { --font-sans: 'Public Sans', system-ui, sans-serif; --font-display: 'Newsreader', Georgia, serif; --font-mono: 'IBM Plex Mono', ui-monospace, monospace; --radius: 0.25rem; --btn-radius: var(--radius); --display-weight: 500; --display-tracking: -0.01em; }
+.ds-papier.mode-light {
+  --background: oklch(0.975 0.008 80);
+  --foreground: oklch(0.24 0.015 60);
+  --card: oklch(0.995 0.004 80);
+  --card-foreground: oklch(0.24 0.015 60);
+  --muted: oklch(0.945 0.012 78);
+  --muted-foreground: oklch(0.49 0.02 60);
+  --primary: oklch(0.45 0.10 245);
+  --primary-foreground: oklch(0.975 0.01 80);
+  --secondary: oklch(0.92 0.02 75);
+  --secondary-foreground: oklch(0.30 0.03 55);
+  --accent: oklch(0.93 0.03 80);
+  --accent-foreground: oklch(0.36 0.05 60);
+  --destructive: oklch(0.50 0.19 25);
+  --destructive-foreground: oklch(0.975 0.01 80);
+  --border: oklch(0.89 0.014 75);
+  --input: oklch(0.64 0.02 70);
+  --ring: oklch(0.45 0.10 245);
+  color-scheme: light;
+}
+.ds-papier.mode-dark {
+  --background: oklch(0.19 0.01 60);
+  --foreground: oklch(0.94 0.012 80);
+  --card: oklch(0.23 0.012 60);
+  --card-foreground: oklch(0.94 0.012 80);
+  --muted: oklch(0.27 0.012 60);
+  --muted-foreground: oklch(0.73 0.02 75);
+  --primary: oklch(0.73 0.10 240);
+  --primary-foreground: oklch(0.18 0.03 245);
+  --secondary: oklch(0.29 0.014 60);
+  --secondary-foreground: oklch(0.92 0.012 80);
+  --accent: oklch(0.31 0.02 70);
+  --accent-foreground: oklch(0.90 0.03 80);
+  --destructive: oklch(0.67 0.17 25);
+  --destructive-foreground: oklch(0.18 0.02 25);
+  --border: oklch(0.32 0.012 60);
+  --input: oklch(0.53 0.016 65);
+  --ring: oklch(0.73 0.10 240);
+  color-scheme: dark;
+}
+.ds-menthe { --font-sans: 'Geist', system-ui, sans-serif; --font-display: 'Geist', system-ui, sans-serif; --font-mono: 'Geist Mono', ui-monospace, monospace; --radius: 0.75rem; --btn-radius: 999px; --display-weight: 600; --display-tracking: -0.025em; }
+.ds-menthe.mode-light {
+  --background: oklch(0.99 0.003 165);
+  --foreground: oklch(0.2 0.012 165);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.012 165);
+  --muted: oklch(0.965 0.008 165);
+  --muted-foreground: oklch(0.50 0.02 165);
+  --primary: oklch(0.50 0.115 162);
+  --primary-foreground: oklch(0.99 0.01 165);
+  --secondary: oklch(0.95 0.02 165);
+  --secondary-foreground: oklch(0.32 0.06 165);
+  --accent: oklch(0.95 0.05 95);
+  --accent-foreground: oklch(0.40 0.08 80);
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: oklch(0.99 0.01 25);
+  --border: oklch(0.92 0.008 165);
+  --input: oklch(0.66 0.016 165);
+  --ring: oklch(0.50 0.115 162);
+  color-scheme: light;
+}
+.ds-menthe.mode-dark {
+  --background: oklch(0.15 0.008 165);
+  --foreground: oklch(0.97 0.005 165);
+  --card: oklch(0.19 0.01 165);
+  --card-foreground: oklch(0.97 0.005 165);
+  --muted: oklch(0.24 0.012 165);
+  --muted-foreground: oklch(0.72 0.02 165);
+  --primary: oklch(0.79 0.15 162);
+  --primary-foreground: oklch(0.18 0.04 165);
+  --secondary: oklch(0.26 0.02 165);
+  --secondary-foreground: oklch(0.93 0.01 165);
+  --accent: oklch(0.30 0.04 95);
+  --accent-foreground: oklch(0.92 0.07 95);
+  --destructive: oklch(0.68 0.19 25);
+  --destructive-foreground: oklch(0.16 0.02 25);
+  --border: oklch(0.28 0.012 165);
+  --input: oklch(0.50 0.016 165);
+  --ring: oklch(0.79 0.15 162);
+  color-scheme: dark;
+}
+
+/* ——— Composants, pilotés uniquement par les tokens ——— */
+.panel { background: var(--background); color: var(--foreground); font-family: var(--font-sans); border: 1px solid var(--border); border-radius: calc(var(--radius) + 6px); padding: 20px; min-width: 0; }
+.mode-tag { margin: 0 0 4px; font: 500 11px/1 var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted-foreground); }
+.sec { margin: 22px 0 10px; font: 600 12px/1 var(--font-sans); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); }
+.swatches { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.swatch { display: grid; grid-template-columns: 34px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; min-width: 0; }
+.chip { grid-row: span 2; width: 34px; height: 34px; border-radius: calc(var(--radius) - 2px); border: 1px solid var(--border); display: grid; place-items: center; font: 600 12px/1 var(--font-sans); }
+.tok { font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.swatch code { font: 10.5px/1.2 var(--font-mono); color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.type p { margin: 0 0 6px; }
+.t-display { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-tracking); font-size: 28px; line-height: 1.15; }
+.t-h2 { font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-tracking); font-size: 18px; line-height: 1.3; }
+.t-body { font-size: 15px; line-height: 1.55; }
+.t-small { font-size: 13px; color: var(--muted-foreground); }
+.t-mono { font: 13px/1.4 var(--font-mono); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { font: 500 14px/1 var(--font-sans); height: 36px; padding: 0 14px; border-radius: var(--btn-radius); border: 1px solid transparent; cursor: pointer; transition: background-color .15s, opacity .15s; }
+.btn-sm { height: 32px; padding: 0 12px; font-size: 13px; }
+.btn:focus-visible, .input:focus-visible, .check input:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.btn-primary { background: var(--primary); color: var(--primary-foreground); }
+.btn-primary:hover:not(:disabled) { background: color-mix(in oklch, var(--primary) 88%, var(--foreground)); }
+.btn-secondary { background: var(--secondary); color: var(--secondary-foreground); }
+.btn-secondary:hover { background: color-mix(in oklch, var(--secondary) 92%, var(--foreground)); }
+.btn-outline { background: var(--card); color: var(--foreground); border-color: var(--input); }
+.btn-outline:hover, .btn-ghost:hover { background: var(--accent); color: var(--accent-foreground); }
+.btn-ghost { background: transparent; color: var(--foreground); }
+.btn-destructive { background: var(--destructive); color: var(--destructive-foreground); }
+.btn-destructive:hover { background: color-mix(in oklch, var(--destructive) 88%, var(--foreground)); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+.field { display: grid; gap: 6px; min-width: 0; }
+.field-wide { grid-column: 1 / -1; }
+.label { font-size: 13px; font-weight: 500; }
+.input { font: 14px/1.4 var(--font-sans); width: 100%; min-height: 36px; padding: 7px 10px; background: var(--card); color: var(--foreground); border: 1px solid var(--input); border-radius: var(--radius); resize: vertical; }
+.input::placeholder { color: var(--muted-foreground); }
+.input.is-focus { border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 30%, transparent); }
+.input.is-error { border-color: var(--destructive); box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 20%, transparent); }
+.hint-error { font-size: 12.5px; color: var(--destructive); }
+.check { display: flex; align-items: center; gap: 8px; font-size: 14px; grid-column: 1 / -1; }
+.check input { accent-color: var(--primary); width: 16px; height: 16px; margin: 0; }
+.contact { background: var(--card); color: var(--card-foreground); border: 1px solid var(--border); border-radius: calc(var(--radius) + 4px); padding: 16px; display: grid; gap: 14px; box-shadow: 0 1px 2px oklch(0 0 0 / 6%); }
+.contact-head { display: flex; align-items: center; gap: 12px; }
+.contact-head > div { flex: 1; min-width: 0; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: var(--accent-foreground); display: grid; place-items: center; font: 600 14px/1 var(--font-sans); flex: none; }
+.contact-name { margin: 0; font-family: var(--font-display); font-weight: var(--display-weight); letter-spacing: var(--display-tracking); font-size: 16px; }
+.contact-role { margin: 0; font-size: 13px; color: var(--muted-foreground); }
+.badge { font: 500 12px/1 var(--font-sans); padding: 5px 9px; border-radius: 999px; background: var(--secondary); color: var(--secondary-foreground); white-space: nowrap; }
+.contact-meta { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px; background: var(--muted); border-radius: var(--radius); }
+.contact-meta dt { font-size: 12px; color: var(--muted-foreground); }
+.contact-meta dd { margin: 2px 0 0; font: 13px/1.3 var(--font-mono); overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+</style>
+</head>
+<body>
+<header class="page-head">
+  <h1>Kanbazar — trois design systems</h1>
+  <p>Chaque option est montrée en clair et en sombre, avec les tokens shadcn/ui (OKLCH) qu'elle définirait. Tous les textes respectent un contraste ≥ 4,5:1 et les bordures de champs ≥ 3:1. Choisis une option : elle sera appliquée au thème shadcn de l'app.</p>
+</header>
+<main class="grid">
+
+<div class="column">
+  <header class="col-head">
+    <p class="col-num">Option A</p>
+    <h2 class="col-title" style="font-family:'Inter', system-ui, sans-serif;font-weight:650">Ardoise</h2>
+    <p class="col-pitch">Neutre froid, précis, dense. Un outil qui s'efface derrière les cartes.</p>
+    <p class="col-specs">Inter · JetBrains Mono · rayon 0.5rem</p>
+  </header>
+  
+<section class="panel ds-ardoise mode-light" aria-label="Ardoise, clair">
+  <p class="mode-tag">Clair</p>
+
+  <h3 class="sec">Couleurs</h3>
+  <ul class="swatches"><li class="swatch"><span class="chip" style="background:var(--background);color:var(--foreground)">Aa</span><span class="tok">background</span><code>0.985 0.002 260</code></li><li class="swatch"><span class="chip" style="background:var(--card);color:var(--card-foreground)">Aa</span><span class="tok">card</span><code>1 0 0</code></li><li class="swatch"><span class="chip" style="background:var(--muted);color:var(--muted-foreground)">Aa</span><span class="tok">muted</span><code>0.955 0.005 260</code></li><li class="swatch"><span class="chip" style="background:var(--primary);color:var(--primary-foreground)">Aa</span><span class="tok">primary</span><code>0.51 0.21 275</code></li><li class="swatch"><span class="chip" style="background:var(--secondary);color:var(--secondary-foreground)">Aa</span><span class="tok">secondary</span><code>0.945 0.01 265</code></li><li class="swatch"><span class="chip" style="background:var(--accent);color:var(--accent-foreground)">Aa</span><span class="tok">accent</span><code>0.935 0.03 275</code></li><li class="swatch"><span class="chip" style="background:var(--destructive);color:var(--destructive-foreground)">Aa</span><span class="tok">destructive</span><code>0.55 0.21 25</code></li><li class="swatch"><span class="chip" style="background:var(--border);color:var(--foreground)">Aa</span><span class="tok">border</span><code>0.91 0.006 260</code></li><li class="swatch"><span class="chip" style="background:var(--input);color:var(--background)">Aa</span><span class="tok">input</span><code>0.66 0.012 260</code></li><li class="swatch"><span class="chip" style="background:var(--ring);color:var(--background)">Aa</span><span class="tok">ring</span><code>0.51 0.21 275</code></li></ul>
+
+  <h3 class="sec">Typographie</h3>
+  <div class="type">
+    <p class="t-display">Tableau de l'équipe</p>
+    <p class="t-h2">À faire · En cours · Terminé</p>
+    <p class="t-body">Corps de texte : une carte représente une tâche, une colonne représente son état d'avancement.</p>
+    <p class="t-small">Petit texte secondaire — modifié il y a 3 min</p>
+    <p class="t-mono">KBZ-142 · feat/drag-and-drop</p>
+  </div>
+
+  <h3 class="sec">Boutons</h3>
+  <div class="row">
+    <button class="btn btn-primary">Créer une carte</button>
+    <button class="btn btn-secondary">Secondaire</button>
+    <button class="btn btn-outline">Contour</button>
+    <button class="btn btn-ghost">Discret</button>
+    <button class="btn btn-destructive">Supprimer</button>
+    <button class="btn btn-primary" disabled>Désactivé</button>
+  </div>
+
+  <h3 class="sec">Champs</h3>
+  <div class="fields">
+    <label class="field"><span class="label">Titre</span>
+      <input class="input" placeholder="Ex. Brancher Turso" /></label>
+    <label class="field"><span class="label">Avec focus</span>
+      <input class="input is-focus" value="Refactor du service" /></label>
+    <label class="field"><span class="label">En erreur</span>
+      <input class="input is-error" value="" placeholder="Titre obligatoire" aria-invalid="true" aria-describedby="err-ardoise-light" />
+      <span class="hint-error" id="err-ardoise-light">Le titre ne peut pas être vide.</span></label>
+    <label class="field"><span class="label">État</span>
+      <select class="input"><option>À faire</option><option>En cours</option><option>Terminé</option></select></label>
+    <label class="field field-wide"><span class="label">Description</span>
+      <textarea class="input" rows="2" placeholder="Détails de la tâche…"></textarea></label>
+    <label class="check"><input type="checkbox" checked /> <span>Archiver après livraison</span></label>
+  </div>
+
+  <h3 class="sec">Carte de contact</h3>
+  <article class="contact">
+    <div class="contact-head">
+      <span class="avatar" aria-hidden="true">CM</span>
+      <div>
+        <p class="contact-name">Camille Martin</p>
+        <p class="contact-role">Développeuse front-end</p>
+      </div>
+      <span class="badge">Disponible</span>
+    </div>
+    <dl class="contact-meta">
+      <div><dt>E-mail</dt><dd>camille@exemple.fr</dd></div>
+      <div><dt>Téléphone</dt><dd>06 12 34 56 78</dd></div>
+    </dl>
+    <div class="row">
+      <button class="btn btn-primary btn-sm">Écrire</button>
+      <button class="btn btn-outline btn-sm">Appeler</button>
+    </div>
+  </article>
+</section>
+  
+<section class="panel ds-ardoise mode-dark" aria-label="Ardoise, sombre">
+  <p class="mode-tag">Sombre</p>
+
+  <h3 class="sec">Couleurs</h3>
+  <ul class="swatches"><li class="swatch"><span class="chip" style="background:var(--background);color:var(--foreground)">Aa</span><span class="tok">background</span><code>0.16 0.012 265</code></li><li class="swatch"><span class="chip" style="background:var(--card);color:var(--card-foreground)">Aa</span><span class="tok">card</span><code>0.2 0.014 265</code></li><li class="swatch"><span class="chip" style="background:var(--muted);color:var(--muted-foreground)">Aa</span><span class="tok">muted</span><code>0.25 0.014 265</code></li><li class="swatch"><span class="chip" style="background:var(--primary);color:var(--primary-foreground)">Aa</span><span class="tok">primary</span><code>0.68 0.16 275</code></li><li class="swatch"><span class="chip" style="background:var(--secondary);color:var(--secondary-foreground)">Aa</span><span class="tok">secondary</span><code>0.27 0.016 265</code></li><li class="swatch"><span class="chip" style="background:var(--accent);color:var(--accent-foreground)">Aa</span><span class="tok">accent</span><code>0.30 0.05 275</code></li><li class="swatch"><span class="chip" style="background:var(--destructive);color:var(--destructive-foreground)">Aa</span><span class="tok">destructive</span><code>0.66 0.19 25</code></li><li class="swatch"><span class="chip" style="background:var(--border);color:var(--foreground)">Aa</span><span class="tok">border</span><code>0.29 0.014 265</code></li><li class="swatch"><span class="chip" style="background:var(--input);color:var(--background)">Aa</span><span class="tok">input</span><code>0.50 0.016 265</code></li><li class="swatch"><span class="chip" style="background:var(--ring);color:var(--background)">Aa</span><span class="tok">ring</span><code>0.68 0.16 275</code></li></ul>
+
+  <h3 class="sec">Typographie</h3>
+  <div class="type">
+    <p class="t-display">Tableau de l'équipe</p>
+    <p class="t-h2">À faire · En cours · Terminé</p>
+    <p class="t-body">Corps de texte : une carte représente une tâche, une colonne représente son état d'avancement.</p>
+    <p class="t-small">Petit texte secondaire — modifié il y a 3 min</p>
+    <p class="t-mono">KBZ-142 · feat/drag-and-drop</p>
+  </div>
+
+  <h3 class="sec">Boutons</h3>
+  <div class="row">
+    <button class="btn btn-primary">Créer une carte</button>
+    <button class="btn btn-secondary">Secondaire</button>
+    <button class="btn btn-outline">Contour</button>
+    <button class="btn btn-ghost">Discret</button>
+    <button class="btn btn-destructive">Supprimer</button>
+    <button class="btn btn-primary" disabled>Désactivé</button>
+  </div>
+
+  <h3 class="sec">Champs</h3>
+  <div class="fields">
+    <label class="field"><span class="label">Titre</span>
+      <input class="input" placeholder="Ex. Brancher Turso" /></label>
+    <label class="field"><span class="label">Avec focus</span>
+      <input class="input is-focus" value="Refactor du service" /></label>
+    <label class="field"><span class="label">En erreur</span>
+      <input class="input is-error" value="" placeholder="Titre obligatoire" aria-invalid="true" aria-describedby="err-ardoise-dark" />
+      <span class="hint-error" id="err-ardoise-dark">Le titre ne peut pas être vide.</span></label>
+    <label class="field"><span class="label">État</span>
+      <select class="input"><option>À faire</option><option>En cours</option><option>Terminé</option></select></label>
+    <label class="field field-wide"><span class="label">Description</span>
+      <textarea class="input" rows="2" placeholder="Détails de la tâche…"></textarea></label>
+    <label class="check"><input type="checkbox" checked /> <span>Archiver après livraison</span></label>
+  </div>
+
+  <h3 class="sec">Carte de contact</h3>
+  <article class="contact">
+    <div class="contact-head">
+      <span class="avatar" aria-hidden="true">CM</span>
+      <div>
+        <p class="contact-name">Camille Martin</p>
+        <p class="contact-role">Développeuse front-end</p>
+      </div>
+      <span class="badge">Disponible</span>
+    </div>
+    <dl class="contact-meta">
+      <div><dt>E-mail</dt><dd>camille@exemple.fr</dd></div>
+      <div><dt>Téléphone</dt><dd>06 12 34 56 78</dd></div>
+    </dl>
+    <div class="row">
+      <button class="btn btn-primary btn-sm">Écrire</button>
+      <button class="btn btn-outline btn-sm">Appeler</button>
+    </div>
+  </article>
+</section>
+</div>
+<div class="column">
+  <header class="col-head">
+    <p class="col-num">Option B</p>
+    <h2 class="col-title" style="font-family:'Newsreader', Georgia, serif;font-weight:500">Papier</h2>
+    <p class="col-pitch">Chaud et éditorial : papier crème, encre bleue, titres à empattements.</p>
+    <p class="col-specs">Newsreader · Public Sans · IBM Plex Mono · rayon 0.25rem</p>
+  </header>
+  
+<section class="panel ds-papier mode-light" aria-label="Papier, clair">
+  <p class="mode-tag">Clair</p>
+
+  <h3 class="sec">Couleurs</h3>
+  <ul class="swatches"><li class="swatch"><span class="chip" style="background:var(--background);color:var(--foreground)">Aa</span><span class="tok">background</span><code>0.975 0.008 80</code></li><li class="swatch"><span class="chip" style="background:var(--card);color:var(--card-foreground)">Aa</span><span class="tok">card</span><code>0.995 0.004 80</code></li><li class="swatch"><span class="chip" style="background:var(--muted);color:var(--muted-foreground)">Aa</span><span class="tok">muted</span><code>0.945 0.012 78</code></li><li class="swatch"><span class="chip" style="background:var(--primary);color:var(--primary-foreground)">Aa</span><span class="tok">primary</span><code>0.45 0.10 245</code></li><li class="swatch"><span class="chip" style="background:var(--secondary);color:var(--secondary-foreground)">Aa</span><span class="tok">secondary</span><code>0.92 0.02 75</code></li><li class="swatch"><span class="chip" style="background:var(--accent);color:var(--accent-foreground)">Aa</span><span class="tok">accent</span><code>0.93 0.03 80</code></li><li class="swatch"><span class="chip" style="background:var(--destructive);color:var(--destructive-foreground)">Aa</span><span class="tok">destructive</span><code>0.50 0.19 25</code></li><li class="swatch"><span class="chip" style="background:var(--border);color:var(--foreground)">Aa</span><span class="tok">border</span><code>0.89 0.014 75</code></li><li class="swatch"><span class="chip" style="background:var(--input);color:var(--background)">Aa</span><span class="tok">input</span><code>0.64 0.02 70</code></li><li class="swatch"><span class="chip" style="background:var(--ring);color:var(--background)">Aa</span><span class="tok">ring</span><code>0.45 0.10 245</code></li></ul>
+
+  <h3 class="sec">Typographie</h3>
+  <div class="type">
+    <p class="t-display">Tableau de l'équipe</p>
+    <p class="t-h2">À faire · En cours · Terminé</p>
+    <p class="t-body">Corps de texte : une carte représente une tâche, une colonne représente son état d'avancement.</p>
+    <p class="t-small">Petit texte secondaire — modifié il y a 3 min</p>
+    <p class="t-mono">KBZ-142 · feat/drag-and-drop</p>
+  </div>
+
+  <h3 class="sec">Boutons</h3>
+  <div class="row">
+    <button class="btn btn-primary">Créer une carte</button>
+    <button class="btn btn-secondary">Secondaire</button>
+    <button class="btn btn-outline">Contour</button>
+    <button class="btn btn-ghost">Discret</button>
+    <button class="btn btn-destructive">Supprimer</button>
+    <button class="btn btn-primary" disabled>Désactivé</button>
+  </div>
+
+  <h3 class="sec">Champs</h3>
+  <div class="fields">
+    <label class="field"><span class="label">Titre</span>
+      <input class="input" placeholder="Ex. Brancher Turso" /></label>
+    <label class="field"><span class="label">Avec focus</span>
+      <input class="input is-focus" value="Refactor du service" /></label>
+    <label class="field"><span class="label">En erreur</span>
+      <input class="input is-error" value="" placeholder="Titre obligatoire" aria-invalid="true" aria-describedby="err-papier-light" />
+      <span class="hint-error" id="err-papier-light">Le titre ne peut pas être vide.</span></label>
+    <label class="field"><span class="label">État</span>
+      <select class="input"><option>À faire</option><option>En cours</option><option>Terminé</option></select></label>
+    <label class="field field-wide"><span class="label">Description</span>
+      <textarea class="input" rows="2" placeholder="Détails de la tâche…"></textarea></label>
+    <label class="check"><input type="checkbox" checked /> <span>Archiver après livraison</span></label>
+  </div>
+
+  <h3 class="sec">Carte de contact</h3>
+  <article class="contact">
+    <div class="contact-head">
+      <span class="avatar" aria-hidden="true">CM</span>
+      <div>
+        <p class="contact-name">Camille Martin</p>
+        <p class="contact-role">Développeuse front-end</p>
+      </div>
+      <span class="badge">Disponible</span>
+    </div>
+    <dl class="contact-meta">
+      <div><dt>E-mail</dt><dd>camille@exemple.fr</dd></div>
+      <div><dt>Téléphone</dt><dd>06 12 34 56 78</dd></div>
+    </dl>
+    <div class="row">
+      <button class="btn btn-primary btn-sm">Écrire</button>
+      <button class="btn btn-outline btn-sm">Appeler</button>
+    </div>
+  </article>
+</section>
+  
+<section class="panel ds-papier mode-dark" aria-label="Papier, sombre">
+  <p class="mode-tag">Sombre</p>
+
+  <h3 class="sec">Couleurs</h3>
+  <ul class="swatches"><li class="swatch"><span class="chip" style="background:var(--background);color:var(--foreground)">Aa</span><span class="tok">background</span><code>0.19 0.01 60</code></li><li class="swatch"><span class="chip" style="background:var(--card);color:var(--card-foreground)">Aa</span><span class="tok">card</span><code>0.23 0.012 60</code></li><li class="swatch"><span class="chip" style="background:var(--muted);color:var(--muted-foreground)">Aa</span><span class="tok">muted</span><code>0.27 0.012 60</code></li><li class="swatch"><span class="chip" style="background:var(--primary);color:var(--primary-foreground)">Aa</span><span class="tok">primary</span><code>0.73 0.10 240</code></li><li class="swatch"><span class="chip" style="background:var(--secondary);color:var(--secondary-foreground)">Aa</span><span class="tok">secondary</span><code>0.29 0.014 60</code></li><li class="swatch"><span class="chip" style="background:var(--accent);color:var(--accent-foreground)">Aa</span><span class="tok">accent</span><code>0.31 0.02 70</code></li><li class="swatch"><span class="chip" style="background:var(--destructive);color:var(--destructive-foreground)">Aa</span><span class="tok">destructive</span><code>0.67 0.17 25</code></li><li class="swatch"><span class="chip" style="background:var(--border);color:var(--foreground)">Aa</span><span class="tok">border</span><code>0.32 0.012 60</code></li><li class="swatch"><span class="chip" style="background:var(--input);color:var(--background)">Aa</span><span class="tok">input</span><code>0.53 0.016 65</code></li><li class="swatch"><span class="chip" style="background:var(--ring);color:var(--background)">Aa</span><span class="tok">ring</span><code>0.73 0.10 240</code></li></ul>
+
+  <h3 class="sec">Typographie</h3>
+  <div class="type">
+    <p class="t-display">Tableau de l'équipe</p>
+    <p class="t-h2">À faire · En cours · Terminé</p>
+    <p class="t-body">Corps de texte : une carte représente une tâche, une colonne représente son état d'avancement.</p>
+    <p class="t-small">Petit texte secondaire — modifié il y a 3 min</p>
+    <p class="t-mono">KBZ-142 · feat/drag-and-drop</p>
+  </div>
+
+  <h3 class="sec">Boutons</h3>
+  <div class="row">
+    <button class="btn btn-primary">Créer une carte</button>
+    <button class="btn btn-secondary">Secondaire</button>
+    <button class="btn btn-outline">Contour</button>
+    <button class="btn btn-ghost">Discret</button>
+    <button class="btn btn-destructive">Supprimer</button>
+    <button class="btn btn-primary" disabled>Désactivé</button>
+  </div>
+
+  <h3 class="sec">Champs</h3>
+  <div class="fields">
+    <label class="field"><span class="label">Titre</span>
+      <input class="input" placeholder="Ex. Brancher Turso" /></label>
+    <label class="field"><span class="label">Avec focus</span>
+      <input class="input is-focus" value="Refactor du service" /></label>
+    <label class="field"><span class="label">En erreur</span>
+      <input class="input is-error" value="" placeholder="Titre obligatoire" aria-invalid="true" aria-describedby="err-papier-dark" />
+      <span class="hint-error" id="err-papier-dark">Le titre ne peut pas être vide.</span></label>
+    <label class="field"><span class="label">État</span>
+      <select class="input"><option>À faire</option><option>En cours</option><option>Terminé</option></select></label>
+    <label class="field field-wide"><span class="label">Description</span>
+      <textarea class="input" rows="2" placeholder="Détails de la tâche…"></textarea></label>
+    <label class="check"><input type="checkbox" checked /> <span>Archiver après livraison</span></label>
+  </div>
+
+  <h3 class="sec">Carte de contact</h3>
+  <article class="contact">
+    <div class="contact-head">
+      <span class="avatar" aria-hidden="true">CM</span>
+      <div>
+        <p class="contact-name">Camille Martin</p>
+        <p class="contact-role">Développeuse front-end</p>
+      </div>
+      <span class="badge">Disponible</span>
+    </div>
+    <dl class="contact-meta">
+      <div><dt>E-mail</dt><dd>camille@exemple.fr</dd></div>
+      <div><dt>Téléphone</dt><dd>06 12 34 56 78</dd></div>
+    </dl>
+    <div class="row">
+      <button class="btn btn-primary btn-sm">Écrire</button>
+      <button class="btn btn-outline btn-sm">Appeler</button>
+    </div>
+  </article>
+</section>
+</div>
+<div class="column">
+  <header class="col-head">
+    <p class="col-num">Option C</p>
+    <h2 class="col-title" style="font-family:'Geist', system-ui, sans-serif;font-weight:600">Menthe</h2>
+    <p class="col-pitch">Clair et amical : arrondis généreux, vert menthe, Geist (déjà dans le projet).</p>
+    <p class="col-specs">Geist · Geist Mono · rayon 0.75rem · boutons pilule</p>
+  </header>
+  
+<section class="panel ds-menthe mode-light" aria-label="Menthe, clair">
+  <p class="mode-tag">Clair</p>
+
+  <h3 class="sec">Couleurs</h3>
+  <ul class="swatches"><li class="swatch"><span class="chip" style="background:var(--background);color:var(--foreground)">Aa</span><span class="tok">background</span><code>0.99 0.003 165</code></li><li class="swatch"><span class="chip" style="background:var(--card);color:var(--card-foreground)">Aa</span><span class="tok">card</span><code>1 0 0</code></li><li class="swatch"><span class="chip" style="background:var(--muted);color:var(--muted-foreground)">Aa</span><span class="tok">muted</span><code>0.965 0.008 165</code></li><li class="swatch"><span class="chip" style="background:var(--primary);color:var(--primary-foreground)">Aa</span><span class="tok">primary</span><code>0.50 0.115 162</code></li><li class="swatch"><span class="chip" style="background:var(--secondary);color:var(--secondary-foreground)">Aa</span><span class="tok">secondary</span><code>0.95 0.02 165</code></li><li class="swatch"><span class="chip" style="background:var(--accent);color:var(--accent-foreground)">Aa</span><span class="tok">accent</span><code>0.95 0.05 95</code></li><li class="swatch"><span class="chip" style="background:var(--destructive);color:var(--destructive-foreground)">Aa</span><span class="tok">destructive</span><code>0.55 0.2 25</code></li><li class="swatch"><span class="chip" style="background:var(--border);color:var(--foreground)">Aa</span><span class="tok">border</span><code>0.92 0.008 165</code></li><li class="swatch"><span class="chip" style="background:var(--input);color:var(--background)">Aa</span><span class="tok">input</span><code>0.66 0.016 165</code></li><li class="swatch"><span class="chip" style="background:var(--ring);color:var(--background)">Aa</span><span class="tok">ring</span><code>0.50 0.115 162</code></li></ul>
+
+  <h3 class="sec">Typographie</h3>
+  <div class="type">
+    <p class="t-display">Tableau de l'équipe</p>
+    <p class="t-h2">À faire · En cours · Terminé</p>
+    <p class="t-body">Corps de texte : une carte représente une tâche, une colonne représente son état d'avancement.</p>
+    <p class="t-small">Petit texte secondaire — modifié il y a 3 min</p>
+    <p class="t-mono">KBZ-142 · feat/drag-and-drop</p>
+  </div>
+
+  <h3 class="sec">Boutons</h3>
+  <div class="row">
+    <button class="btn btn-primary">Créer une carte</button>
+    <button class="btn btn-secondary">Secondaire</button>
+    <button class="btn btn-outline">Contour</button>
+    <button class="btn btn-ghost">Discret</button>
+    <button class="btn btn-destructive">Supprimer</button>
+    <button class="btn btn-primary" disabled>Désactivé</button>
+  </div>
+
+  <h3 class="sec">Champs</h3>
+  <div class="fields">
+    <label class="field"><span class="label">Titre</span>
+      <input class="input" placeholder="Ex. Brancher Turso" /></label>
+    <label class="field"><span class="label">Avec focus</span>
+      <input class="input is-focus" value="Refactor du service" /></label>
+    <label class="field"><span class="label">En erreur</span>
+      <input class="input is-error" value="" placeholder="Titre obligatoire" aria-invalid="true" aria-describedby="err-menthe-light" />
+      <span class="hint-error" id="err-menthe-light">Le titre ne peut pas être vide.</span></label>
+    <label class="field"><span class="label">État</span>
+      <select class="input"><option>À faire</option><option>En cours</option><option>Terminé</option></select></label>
+    <label class="field field-wide"><span class="label">Description</span>
+      <textarea class="input" rows="2" placeholder="Détails de la tâche…"></textarea></label>
+    <label class="check"><input type="checkbox" checked /> <span>Archiver après livraison</span></label>
+  </div>
+
+  <h3 class="sec">Carte de contact</h3>
+  <article class="contact">
+    <div class="contact-head">
+      <span class="avatar" aria-hidden="true">CM</span>
+      <div>
+        <p class="contact-name">Camille Martin</p>
+        <p class="contact-role">Développeuse front-end</p>
+      </div>
+      <span class="badge">Disponible</span>
+    </div>
+    <dl class="contact-meta">
+      <div><dt>E-mail</dt><dd>camille@exemple.fr</dd></div>
+      <div><dt>Téléphone</dt><dd>06 12 34 56 78</dd></div>
+    </dl>
+    <div class="row">
+      <button class="btn btn-primary btn-sm">Écrire</button>
+      <button class="btn btn-outline btn-sm">Appeler</button>
+    </div>
+  </article>
+</section>
+  
+<section class="panel ds-menthe mode-dark" aria-label="Menthe, sombre">
+  <p class="mode-tag">Sombre</p>
+
+  <h3 class="sec">Couleurs</h3>
+  <ul class="swatches"><li class="swatch"><span class="chip" style="background:var(--background);color:var(--foreground)">Aa</span><span class="tok">background</span><code>0.15 0.008 165</code></li><li class="swatch"><span class="chip" style="background:var(--card);color:var(--card-foreground)">Aa</span><span class="tok">card</span><code>0.19 0.01 165</code></li><li class="swatch"><span class="chip" style="background:var(--muted);color:var(--muted-foreground)">Aa</span><span class="tok">muted</span><code>0.24 0.012 165</code></li><li class="swatch"><span class="chip" style="background:var(--primary);color:var(--primary-foreground)">Aa</span><span class="tok">primary</span><code>0.79 0.15 162</code></li><li class="swatch"><span class="chip" style="background:var(--secondary);color:var(--secondary-foreground)">Aa</span><span class="tok">secondary</span><code>0.26 0.02 165</code></li><li class="swatch"><span class="chip" style="background:var(--accent);color:var(--accent-foreground)">Aa</span><span class="tok">accent</span><code>0.30 0.04 95</code></li><li class="swatch"><span class="chip" style="background:var(--destructive);color:var(--destructive-foreground)">Aa</span><span class="tok">destructive</span><code>0.68 0.19 25</code></li><li class="swatch"><span class="chip" style="background:var(--border);color:var(--foreground)">Aa</span><span class="tok">border</span><code>0.28 0.012 165</code></li><li class="swatch"><span class="chip" style="background:var(--input);color:var(--background)">Aa</span><span class="tok">input</span><code>0.50 0.016 165</code></li><li class="swatch"><span class="chip" style="background:var(--ring);color:var(--background)">Aa</span><span class="tok">ring</span><code>0.79 0.15 162</code></li></ul>
+
+  <h3 class="sec">Typographie</h3>
+  <div class="type">
+    <p class="t-display">Tableau de l'équipe</p>
+    <p class="t-h2">À faire · En cours · Terminé</p>
+    <p class="t-body">Corps de texte : une carte représente une tâche, une colonne représente son état d'avancement.</p>
+    <p class="t-small">Petit texte secondaire — modifié il y a 3 min</p>
+    <p class="t-mono">KBZ-142 · feat/drag-and-drop</p>
+  </div>
+
+  <h3 class="sec">Boutons</h3>
+  <div class="row">
+    <button class="btn btn-primary">Créer une carte</button>
+    <button class="btn btn-secondary">Secondaire</button>
+    <button class="btn btn-outline">Contour</button>
+    <button class="btn btn-ghost">Discret</button>
+    <button class="btn btn-destructive">Supprimer</button>
+    <button class="btn btn-primary" disabled>Désactivé</button>
+  </div>
+
+  <h3 class="sec">Champs</h3>
+  <div class="fields">
+    <label class="field"><span class="label">Titre</span>
+      <input class="input" placeholder="Ex. Brancher Turso" /></label>
+    <label class="field"><span class="label">Avec focus</span>
+      <input class="input is-focus" value="Refactor du service" /></label>
+    <label class="field"><span class="label">En erreur</span>
+      <input class="input is-error" value="" placeholder="Titre obligatoire" aria-invalid="true" aria-describedby="err-menthe-dark" />
+      <span class="hint-error" id="err-menthe-dark">Le titre ne peut pas être vide.</span></label>
+    <label class="field"><span class="label">État</span>
+      <select class="input"><option>À faire</option><option>En cours</option><option>Terminé</option></select></label>
+    <label class="field field-wide"><span class="label">Description</span>
+      <textarea class="input" rows="2" placeholder="Détails de la tâche…"></textarea></label>
+    <label class="check"><input type="checkbox" checked /> <span>Archiver après livraison</span></label>
+  </div>
+
+  <h3 class="sec">Carte de contact</h3>
+  <article class="contact">
+    <div class="contact-head">
+      <span class="avatar" aria-hidden="true">CM</span>
+      <div>
+        <p class="contact-name">Camille Martin</p>
+        <p class="contact-role">Développeuse front-end</p>
+      </div>
+      <span class="badge">Disponible</span>
+    </div>
+    <dl class="contact-meta">
+      <div><dt>E-mail</dt><dd>camille@exemple.fr</dd></div>
+      <div><dt>Téléphone</dt><dd>06 12 34 56 78</dd></div>
+    </dl>
+    <div class="row">
+      <button class="btn btn-primary btn-sm">Écrire</button>
+      <button class="btn btn-outline btn-sm">Appeler</button>
+    </div>
+  </article>
+</section>
+</div>
+</main>
+</body>
+</html>
